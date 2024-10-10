@@ -33,17 +33,18 @@ impl Players {
             .for_each(|p| writer.serialize(p).unwrap());
         writer.flush().unwrap();
     }
-    pub fn shuffle(&mut self) {
-        fastrand::shuffle(&mut self.players);
-    }
+    // pub fn shuffle(&mut self) {
+    //     fastrand::shuffle(&mut self.players);
+    // }
     pub fn transform(&self) -> Vec<(Player, Player)> {
         let mut players = self.players.clone();
+        fastrand::shuffle(&mut players);
         let mut res = Vec::new();
         while !players.is_empty() {
             dbg!(&players);
             dbg!(&res);
             let cnt = players.remove(0);
-            let idx = Self::diff_list(&self.players, &cnt)
+            let idx = Self::diff_list(&players, &cnt)
                 .expect("possibly number of players isn't divisible by two");
             let pair = (cnt, players.remove(idx));
             res.push(pair);
@@ -64,6 +65,8 @@ impl Players {
     /// 4 same name
     /// 5 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
+        dbg!(hay);
+        dbg!(haystack);
         // index, value
         let mut max: (Option<usize>, u8) = (None, 0);
         for (i, p) in haystack.iter().enumerate() {
@@ -71,7 +74,9 @@ impl Players {
                 1
             } else if hay.class[..2] == p.class[..2] {
                 2
-            } else if hay.class[2..2] == p.class[2..2] {
+            } else if hay.class.chars().nth(2) == p.class.chars().nth(2) {
+                dbg!(hay);
+                dbg!(p);
                 3
             } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
                 || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
@@ -85,6 +90,7 @@ impl Players {
                 max.0 = Some(i);
             }
         }
+        dbg!(max);
         max.0
     }
 }
@@ -111,7 +117,6 @@ impl App {
         Self { players, ..self }
     }
     pub fn fill_tables(&mut self) {
-        self.players.shuffle();
         let wating = if self.players.players.len() % 2 != 0 {
             self.players.players.pop()
         } else {
@@ -164,6 +169,7 @@ fn main() -> std::io::Result<()> {
     dbg!(&app);
     app.fill_tables();
     dbg!(&app);
+    println!("{app:#?}");
 
     // players.save();
 
