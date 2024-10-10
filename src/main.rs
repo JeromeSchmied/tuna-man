@@ -95,44 +95,45 @@ impl Players {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-struct Table {
-    homie: Option<Player>,
-    opponent: Option<Player>,
-}
+// #[derive(Clone, Debug, PartialEq, Eq, Default)]
+// struct Table {
+//     homie: Option<Player>,
+//     opponent: Option<Player>,
+// }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 struct App {
-    tables: Vec<Table>,
+    winning: Players,
+    losing: Players,
     players: Players,
 }
 impl App {
-    pub fn with_tables(self, tables: &[Table]) -> Self {
-        Self {
-            tables: tables.into(),
-            ..self
-        }
-    }
+    // pub fn with_tables(self, tables: &[Table]) -> Self {
+    //     Self {
+    //         tables: tables.into(),
+    //         ..self
+    //     }
+    // }
     pub fn with_players(self, players: Players) -> Self {
         Self { players, ..self }
     }
-    pub fn fill_tables(&mut self) {
-        let wating = if self.players.players.len() % 2 != 0 {
-            self.players.players.pop()
-        } else {
-            None
-        };
-        let mut pairs = self.players.transform();
-        for table in self.tables.iter_mut() {
-            let pair = if let Some(pp) = pairs.pop() {
-                (Some(pp.0), Some(pp.1))
-            } else {
-                (None, None)
-            };
-            table.homie = pair.0;
-            table.opponent = pair.1;
-        }
-    }
+    // pub fn fill_tables(&mut self) {
+    //     let wating = if self.players.players.len() % 2 != 0 {
+    //         self.players.players.pop()
+    //     } else {
+    //         None
+    //     };
+    //     let mut pairs = self.players.transform();
+    //     for table in self.tables.iter_mut() {
+    //         let pair = if let Some(pp) = pairs.pop() {
+    //             (Some(pp.0), Some(pp.1))
+    //         } else {
+    //             (None, None)
+    //         };
+    //         table.homie = pair.0;
+    //         table.opponent = pair.1;
+    //     }
+    // }
     pub fn execute(
         &mut self,
         term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
@@ -164,10 +165,10 @@ impl App {
 }
 fn main() -> std::io::Result<()> {
     let players = Players::load();
-    let tables = vec![Table::default(); 4];
-    let mut app = App::default().with_tables(&tables).with_players(players);
+    // let tables = vec![Table::default(); 4];
+    let mut app = App::default().with_players(players);
     dbg!(&app);
-    app.fill_tables();
+    // app.fill_tables();
     dbg!(&app);
     println!("{app:#?}");
 
