@@ -1,9 +1,9 @@
-use ratatui::Frame;
+// use ratatui::Frame;
 
-use crate::App;
+// use crate::App;
 
-impl App {
-    pub fn ui(&mut self, frame: &mut Frame) {
-        todo!("draw ui");
-    }
-}
+// impl App {
+//     pub fn ui(&mut self, frame: &mut Frame) {
+//         todo!("draw ui");
+//     }
+// }

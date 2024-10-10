@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
+// use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use serde::{Deserialize, Serialize};
 
 pub mod ui;
@@ -149,6 +149,20 @@ impl From<(Player, Player)> for Match {
     }
 }
 impl Match {
+    fn winner(&self) -> Player {
+        if self.outcome.is_some_and(|oc| oc) {
+            self.homie.clone()
+        } else {
+            self.guest.clone()
+        }
+    }
+    fn loser(&self) -> Player {
+        if self.outcome.is_some_and(|oc| oc) {
+            self.guest.clone()
+        } else {
+            self.homie.clone()
+        }
+    }
     fn with_outcome(self, outcome: bool) -> Self {
         Self {
             outcome: Some(outcome),
@@ -197,39 +211,71 @@ impl App {
     fn play_next_round(&mut self) {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
-        if self.winning.len() == 1 || self.losing.len() == 1 {
-            println!("winning: {}", self.winning[0]);
-            println!("losing: {}", self.losing[0]);
-            std::process::exit(0);
-        }
         // get outcomes
         for w_match in self.winning.iter_mut() {
             println!("match: {w_match}");
             w_match.read_outcome();
-            if w_match.outcome.is_some_and(|oc| oc) {
-                // homie won -> w
-                w_match.homie.points += 1;
-                new_win.players.push(w_match.homie.clone());
-                new_lose.players.push(w_match.guest.clone());
-            } else {
-                // guest won -> w
-                w_match.guest.points += 1;
-                new_win.players.push(w_match.guest.clone());
-                new_lose.players.push(w_match.homie.clone());
-            }
+            let mut winner = w_match.winner();
+            winner.points += 1;
+            new_win.players.push(winner);
+
+            let loser = w_match.loser();
+            new_lose.players.push(loser);
         }
         for l_match in self.losing.iter_mut() {
             println!("match: {l_match}");
             l_match.read_outcome();
-            if l_match.outcome.is_some_and(|oc| oc) {
-                // homie won -> l
-                l_match.homie.points += 1;
-                new_lose.players.push(l_match.homie.clone());
-            } else {
-                // guest won -> l
-                l_match.guest.points += 1;
-                new_lose.players.push(l_match.guest.clone());
+            let mut winner = l_match.winner();
+            winner.points += 1;
+            new_lose.players.push(winner);
+        }
+        // if self.winning.len() == 1 || self.losing.len() == 1 {
+        //     let w_match = self.winning[0];
+        //     println!("winning: {w_match}");
+        //     w_match.read_outcome();
+        //     let w_winner = w_match.winner();
+
+        //     let l_match = self.losing[0];
+        //     println!("losing: {l_match}");
+        //     l_match.read_outcome();
+        //     let l_winner =
+        //     let last_match = Match {
+        //         homie: w_winner,
+        //         guest: l_match,
+        //         outcome: None,
+        //     };
+        //     println!("match: {last_match}");
+        //     last_match.read_outcome();
+        //     new_win.players.push(self.winning[0].clone());
+        //     std::process::exit(0);
+        // }
+        dbg!(&new_win);
+        dbg!(&new_lose);
+        // TODO: 5th place stuff
+        if new_lose.players.len() == 3 {
+            new_lose.players.pop();
+            // std::process::exit(0);
+        }
+        if new_win.players.len() == 1 {
+            if new_lose.players.len() == 2 {
+                let l_match: Vec<Match> = new_lose.clone().into();
+                let mut l_match = l_match[0].clone();
+                println!("l_match: {l_match}");
+                l_match.read_outcome();
+                let mut second = l_match.winner();
+                second.points += 1;
+                println!("winner: {:?}", new_win.players[0]);
+                println!("second: {:?}", second);
+                std::process::exit(0);
             }
+            let l_match: Vec<Match> = new_lose.clone().into();
+            let mut l_match = l_match[0].clone();
+            println!("l_match: {l_match}");
+            l_match.read_outcome();
+            let mut winner = l_match.winner();
+            winner.points += 1;
+            new_win.players.push(winner);
+            // std::process::exit(0);
         }
         *self = Self {
             winning: new_win.into(),
@@ -253,34 +299,34 @@ impl App {
     //         table.opponent = pair.1;
     //     }
     // }
-    pub fn execute(
-        &mut self,
-        term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
-    ) -> std::io::Result<()> {
-        todo!("app logic");
-        loop {
-            term.draw(|f| self.ui(f))?;
+    // pub fn execute(
+    //     &mut self,
+    //     term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
+    // ) -> std::io::Result<()> {
+    //     todo!("app logic");
+    //     loop {
+    //         term.draw(|f| self.ui(f))?;
 
-            if let Event::Key(key) = event::read()? {
-                if key.kind != KeyEventKind::Press {
-                    continue;
-                }
-                match key.code {
-                    KeyCode::Char('q') | KeyCode::Esc => break,
-                    KeyCode::Char('j') | KeyCode::Down => todo!(),
-                    KeyCode::Char('k') | KeyCode::Up => todo!(),
-                    KeyCode::Char('r') => todo!(),
-                    KeyCode::Char('n') | KeyCode::Char('l') | KeyCode::Right => todo!(),
-                    KeyCode::Char('p') | KeyCode::Char('h') | KeyCode::Left => todo!(),
-                    KeyCode::Char('R') | KeyCode::Backspace => todo!(),
-                    _ => {}
-                }
-            } else {
-                // resize and restart
-            }
-        }
-        Ok(())
-    }
+    //         if let Event::Key(key) = event::read()? {
+    //             if key.kind != KeyEventKind::Press {
+    //                 continue;
+    //             }
+    //             match key.code {
+    //                 KeyCode::Char('q') | KeyCode::Esc => break,
+    //                 KeyCode::Char('j') | KeyCode::Down => todo!(),
+    //                 KeyCode::Char('k') | KeyCode::Up => todo!(),
+    //                 KeyCode::Char('r') => todo!(),
+    //                 KeyCode::Char('n') | KeyCode::Char('l') | KeyCode::Right => todo!(),
+    //                 KeyCode::Char('p') | KeyCode::Char('h') | KeyCode::Left => todo!(),
+    //                 KeyCode::Char('R') | KeyCode::Backspace => todo!(),
+    //                 _ => {}
+    //             }
+    //         } else {
+    //             // resize and restart
+    //         }
+    //     }
+    //     Ok(())
+    // }
 }
 fn main() -> std::io::Result<()> {
     let players = Players::load();
