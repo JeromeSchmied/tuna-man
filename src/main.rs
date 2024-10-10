@@ -1,11 +1,11 @@
-use std::{fs::File, io::Write};
-
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use serde::{Deserialize, Serialize};
+
 pub mod ui;
 
 const FNAME: &str = "data.csv";
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Player {
     /// name of the Player
     name: String,
@@ -14,60 +14,30 @@ pub struct Player {
     class: String,
     points: u8,
 }
-impl Player {
-    pub fn deser(self) -> String {
-        format!("{};{};{}", self.name, self.class, self.points)
-    }
-}
+impl Player {}
 
 #[derive(Debug, Clone, PartialEq)]
 struct Players {
-    data: Vec<Player>,
+    players: Vec<Player>,
 }
 impl Players {
     pub fn load() -> Self {
-        let f = File::open(FNAME).unwrap();
-        let content = std::io::read_to_string(f).unwrap_or_default();
-        let mut players = Vec::new();
-        for line in content.lines() {
-            let line = line.trim();
-            if line.is_empty() {
-                continue;
-            }
-            let mut fields = line.split(";");
-            let name = fields.next().unwrap().into();
-            let class = fields.next().unwrap().into();
-            let points = fields
-                .next()
-                .unwrap_or_default()
-                .parse()
-                .unwrap_or_default();
-            let p = Player {
-                name,
-                class,
-                points,
-            };
-            players.push(p);
-        }
-        players.sort_unstable();
-        players.dedup();
-        Self { data: players }
+        let mut reader = csv::Reader::from_path(FNAME).unwrap();
+        let players = reader.deserialize().flatten().collect();
+        Self { players }
     }
     pub fn save(self) {
-        let mut content = self
-            .data
+        let mut writer = csv::Writer::from_path(FNAME).unwrap();
+        self.players
             .iter()
-            .fold(String::new(), |acc, cnt| acc + &cnt.clone().deser() + "\n");
-        content.pop();
-        println!("{content:?}");
-        let mut f = File::create(FNAME).unwrap();
-        write!(f, "{}", content).unwrap();
+            .for_each(|p| writer.serialize(p).unwrap());
+        writer.flush().unwrap();
     }
     pub fn shuffle(&mut self) {
-        fastrand::shuffle(&mut self.data);
+        fastrand::shuffle(&mut self.players);
     }
     pub fn transform(&self) -> Vec<(Player, Player)> {
-        let mut players = self.data.clone();
+        let mut players = self.players.clone();
         let mut res = Vec::new();
         while !players.is_empty() {
             eprintln!("players: {players:?}");
@@ -135,16 +105,11 @@ impl App {
 }
 fn main() -> std::io::Result<()> {
     let mut players = Players::load();
-    // players.data.push(Player {
-    //     name: "manó".into(),
-    //     class: "10C".into(),
-    // });
-
     players.shuffle();
     let pairs = players.transform();
     println!("pairs: {pairs:#?}");
 
-    players.save();
+    // players.save();
 
     return Ok(());
 
