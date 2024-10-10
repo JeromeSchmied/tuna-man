@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +22,18 @@ impl Player {}
 struct Players {
     players: Vec<Player>,
 }
+impl From<Players> for Vec<Match> {
+    fn from(players: Players) -> Self {
+        if players.players.len() % 2 != 0 {
+            panic!("error: number of players should be even");
+        }
+        players
+            .transform()
+            .into_iter()
+            .map(std::convert::Into::into)
+            .collect()
+    }
+}
 impl Players {
     pub fn load() -> Self {
         let mut reader = csv::Reader::from_path(FNAME).unwrap();
@@ -41,8 +55,8 @@ impl Players {
         fastrand::shuffle(&mut players);
         let mut res = Vec::new();
         while !players.is_empty() {
-            dbg!(&players);
-            dbg!(&res);
+            // dbg!(&players);
+            // dbg!(&res);
             let cnt = players.remove(0);
             let idx = Self::diff_list(&players, &cnt)
                 .expect("possibly number of players isn't divisible by two");
@@ -65,8 +79,8 @@ impl Players {
     /// 4 same name
     /// 5 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
-        dbg!(hay);
-        dbg!(haystack);
+        // dbg!(hay);
+        // dbg!(haystack);
         // index, value
         let mut max: (Option<usize>, u8) = (None, 0);
         for (i, p) in haystack.iter().enumerate() {
@@ -75,8 +89,8 @@ impl Players {
             } else if hay.class[..2] == p.class[..2] {
                 2
             } else if hay.class.chars().nth(2) == p.class.chars().nth(2) {
-                dbg!(hay);
-                dbg!(p);
+                // dbg!(hay);
+                // dbg!(p);
                 3
             } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
                 || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
@@ -90,7 +104,7 @@ impl Players {
                 max.0 = Some(i);
             }
         }
-        dbg!(max);
+        // dbg!(max);
         max.0
     }
 }
@@ -100,12 +114,72 @@ impl Players {
 //     homie: Option<Player>,
 //     opponent: Option<Player>,
 // }
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Match {
+    homie: Player,
+    guest: Player,
+    /// homie won: true, opponent won: false
+    outcome: Option<bool>,
+}
+impl std::fmt::Display for Match {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let outcome_disp = if let Some(oc) = self.outcome {
+            if oc {
+                self.homie.name.as_str()
+            } else {
+                self.guest.name.as_str()
+            }
+        } else {
+            ""
+        };
+        write!(
+            f,
+            "{} <-> {}\t-\t{outcome_disp}",
+            self.homie.name, self.guest.name
+        )
+    }
+}
+impl From<(Player, Player)> for Match {
+    fn from(val: (Player, Player)) -> Self {
+        Self {
+            homie: val.0,
+            guest: val.1,
+            outcome: None,
+        }
+    }
+}
+impl Match {
+    fn with_outcome(self, outcome: bool) -> Self {
+        Self {
+            outcome: Some(outcome),
+            ..self
+        }
+    }
+    fn read_outcome(&mut self) {
+        print!("outcome: ");
+        std::io::stdout().flush().unwrap();
+        let mut buf = String::new();
+        std::io::stdin().read_line(&mut buf).unwrap();
+        self.outcome = match buf.trim() {
+            "1" | "homie" => Some(true),
+            "0" | "guest" => Some(false),
+            name => {
+                if self.homie.name.contains(name) {
+                    Some(true)
+                } else if self.guest.name.contains(name) {
+                    Some(false)
+                } else {
+                    unreachable!("invalid input");
+                }
+            }
+        };
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 struct App {
-    winning: Players,
-    losing: Players,
-    players: Players,
+    winning: Vec<Match>,
+    losing: Vec<Match>,
 }
 impl App {
     // pub fn with_tables(self, tables: &[Table]) -> Self {
@@ -115,7 +189,52 @@ impl App {
     //     }
     // }
     pub fn with_players(self, players: Players) -> Self {
-        Self { players, ..self }
+        Self {
+            winning: players.into(),
+            ..self
+        }
+    }
+    fn play_next_round(&mut self) {
+        let mut new_win = Players::default();
+        let mut new_lose = Players::default();
+        if self.winning.len() == 1 || self.losing.len() == 1 {
+            println!("winning: {}", self.winning[0]);
+            println!("losing: {}", self.losing[0]);
+            std::process::exit(0);
+        }
+        // get outcomes
+        for w_match in self.winning.iter_mut() {
+            println!("match: {w_match}");
+            w_match.read_outcome();
+            if w_match.outcome.is_some_and(|oc| oc) {
+                // homie won -> w
+                w_match.homie.points += 1;
+                new_win.players.push(w_match.homie.clone());
+                new_lose.players.push(w_match.guest.clone());
+            } else {
+                // guest won -> w
+                w_match.guest.points += 1;
+                new_win.players.push(w_match.guest.clone());
+                new_lose.players.push(w_match.homie.clone());
+            }
+        }
+        for l_match in self.losing.iter_mut() {
+            println!("match: {l_match}");
+            l_match.read_outcome();
+            if l_match.outcome.is_some_and(|oc| oc) {
+                // homie won -> l
+                l_match.homie.points += 1;
+                new_lose.players.push(l_match.homie.clone());
+            } else {
+                // guest won -> l
+                l_match.guest.points += 1;
+                new_lose.players.push(l_match.guest.clone());
+            }
+        }
+        *self = Self {
+            winning: new_win.into(),
+            losing: new_lose.into(),
+        };
     }
     // pub fn fill_tables(&mut self) {
     //     let wating = if self.players.players.len() % 2 != 0 {
@@ -167,10 +286,11 @@ fn main() -> std::io::Result<()> {
     let players = Players::load();
     // let tables = vec![Table::default(); 4];
     let mut app = App::default().with_players(players);
-    dbg!(&app);
-    // app.fill_tables();
-    dbg!(&app);
     println!("{app:#?}");
+    while !app.winning.is_empty() && !app.winning.is_empty() {
+        app.play_next_round();
+        println!("{app:#?}");
+    }
 
     // players.save();
 
