@@ -11,12 +11,12 @@ pub struct Player {
     name: String,
     /// first two chars: grade: 00, 09, 10, 11, 12
     /// last char: id: A,B,C,D for now
-    class: String,
+    class: String, // TODO: don't shoot at this little birdie with such a cannon
     points: u8,
 }
 impl Player {}
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 struct Players {
     players: Vec<Player>,
 }
@@ -54,27 +54,31 @@ impl Players {
     ///
     /// returns index
     ///
-    /// TODO: calculate diff_list, move the one with highest value from players to results
+    /// # Implementation
+    ///
+    /// calculate diff_list, move the one with highest value from players to results
     /// calculation: least similar class:
-    /// 0. same class: grade+id
-    /// 1. same id
-    /// 2. same grade
+    /// 1 same class: grade+id
+    /// 2 same id
+    /// 3 same grade
+    /// 4 same name
+    /// 5 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
         // index, value
         let mut max: (Option<usize>, u8) = (None, 0);
         for (i, p) in haystack.iter().enumerate() {
             let diff = if hay.class == p.class {
-                1 // same class
+                1
             } else if hay.class[..2] == p.class[..2] {
-                2 // same class-grade
+                2
             } else if hay.class[2..2] == p.class[2..2] {
-                3 // same class-id
+                3
             } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
                 || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
             {
-                4 // same name (first or the other)
+                4
             } else {
-                5 // nothing matches, best one!
+                5
             };
             if diff > max.1 {
                 max.1 = diff;
@@ -86,15 +90,42 @@ impl Players {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct App {
-    num_tables: usize,
-    players: Vec<Player>,
+struct Table {
+    homie: Option<Player>,
+    opponent: Option<Player>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+struct App {
+    tables: Vec<Table>,
+    players: Players,
 }
 impl App {
-    pub fn new(players: Vec<Player>, num_tables: usize) -> Self {
+    pub fn with_tables(self, tables: &[Table]) -> Self {
         Self {
-            players,
-            num_tables,
+            tables: tables.into(),
+            ..self
+        }
+    }
+    pub fn with_players(self, players: Players) -> Self {
+        Self { players, ..self }
+    }
+    pub fn fill_tables(&mut self) {
+        self.players.shuffle();
+        let wating = if self.players.players.len() % 2 != 0 {
+            self.players.players.pop()
+        } else {
+            None
+        };
+        let mut pairs = self.players.transform();
+        for table in self.tables.iter_mut() {
+            let pair = if let Some(pp) = pairs.pop() {
+                (Some(pp.0), Some(pp.1))
+            } else {
+                (None, None)
+            };
+            table.homie = pair.0;
+            table.opponent = pair.1;
         }
     }
     pub fn execute(
@@ -127,20 +158,22 @@ impl App {
     }
 }
 fn main() -> std::io::Result<()> {
-    let mut players = Players::load();
-    players.shuffle();
-    let pairs = players.transform();
-    println!("pairs: {pairs:#?}");
+    let players = Players::load();
+    let tables = vec![Table::default(); 4];
+    let mut app = App::default().with_tables(&tables).with_players(players);
+    dbg!(&app);
+    app.fill_tables();
+    dbg!(&app);
 
     // players.save();
 
-    return Ok(());
+    Ok(())
 
-    let mut terminal = ratatui::try_init()?;
+    // let mut terminal = ratatui::try_init()?;
 
-    let res = App::default().execute(&mut terminal);
+    // let res = App::default().execute(&mut terminal);
 
-    ratatui::try_restore()?;
+    // ratatui::try_restore()?;
 
-    res
+    // res
 }
