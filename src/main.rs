@@ -40,25 +40,48 @@ impl Players {
         let mut players = self.players.clone();
         let mut res = Vec::new();
         while !players.is_empty() {
-            eprintln!("players: {players:?}");
-            eprintln!("res: {res:?}");
-            let mut idx = 0;
+            dbg!(&players);
+            dbg!(&res);
             let cnt = players.remove(0);
-            if cnt.class != players[0].class {
-                idx = 0;
-            } else {
-                players.iter().find(|p| {
-                    let res = p.class[..2] != cnt.class[..2];
-                    idx += 1;
-                    res
-                });
-                idx = 0;
-            }
-
+            let idx = Self::diff_list(&self.players, &cnt)
+                .expect("possibly number of players isn't divisible by two");
             let pair = (cnt, players.remove(idx));
             res.push(pair);
         }
         res
+    }
+    /// # Usage
+    ///
+    /// returns index
+    ///
+    /// TODO: calculate diff_list, move the one with highest value from players to results
+    /// calculation: least similar class:
+    /// 0. same class: grade+id
+    /// 1. same id
+    /// 2. same grade
+    fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
+        // index, value
+        let mut max: (Option<usize>, u8) = (None, 0);
+        for (i, p) in haystack.iter().enumerate() {
+            let diff = if hay.class == p.class {
+                1 // same class
+            } else if hay.class[..2] == p.class[..2] {
+                2 // same class-grade
+            } else if hay.class[2..2] == p.class[2..2] {
+                3 // same class-id
+            } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
+                || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
+            {
+                4 // same name (first or the other)
+            } else {
+                5 // nothing matches, best one!
+            };
+            if diff > max.1 {
+                max.1 = diff;
+                max.0 = Some(i);
+            }
+        }
+        max.0
     }
 }
 
