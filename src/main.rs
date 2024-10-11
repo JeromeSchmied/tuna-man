@@ -48,15 +48,15 @@ impl From<Players> for Vec<Match> {
     }
 }
 impl Players {
-    fn load() -> Self {
-        let mut reader = csv::Reader::from_path(FNAME).unwrap();
+    fn load() -> std::io::Result<Self> {
+        let mut reader = csv::Reader::from_path(FNAME)?;
         let players = reader.deserialize().flatten().collect();
-        Self(players)
+        Ok(Self(players))
     }
-    fn save(self) {
-        let mut writer = csv::Writer::from_path(FNAME).unwrap();
+    fn save(self) -> std::io::Result<()> {
+        let mut writer = csv::Writer::from_path(FNAME)?;
         self.0.iter().for_each(|p| writer.serialize(p).unwrap());
-        writer.flush().unwrap();
+        writer.flush()
     }
     fn sort_as_pairs(&mut self) {
         if self.0.is_empty() {
@@ -96,7 +96,7 @@ impl Players {
     ///
     /// greedy.
     ///
-    /// calculate diff_list, move the one with highest value from players to results
+    /// calculate `diff_list`, move the one with highest value from players to results
     /// calculation: least similar class:
     /// 1 same class: grade+id
     /// 2 same id
@@ -221,7 +221,7 @@ impl App {
     //         ..self
     //     }
     // }
-    fn with_players(self, players: Players) -> Self {
+    fn from_players(players: Players) -> Self {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
@@ -295,7 +295,7 @@ impl App {
                 guest,
                 outcome: None,
             };
-            println!("FINAL GAME: {}", finals);
+            println!("FINAL GAME: {finals}");
             let (winner, second) = finals.play();
             println!("WINNER: {winner}");
             println!("SECOND PLACE: {second}");
@@ -350,9 +350,9 @@ impl App {
     // }
 }
 fn main() -> std::io::Result<()> {
-    let players = Players::load();
+    let players = Players::load()?;
     // let tables = vec![Table::default(); 4];
-    let mut app = App::default().with_players(players);
+    let mut app = App::from_players(players);
     println!("{app:#?}");
     let mut i = 0;
     while !app.winning.is_empty() || !app.losing.is_empty() {
