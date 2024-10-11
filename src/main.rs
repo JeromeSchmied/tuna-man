@@ -48,19 +48,16 @@ impl From<Players> for Vec<Match> {
     }
 }
 impl Players {
-    pub fn load() -> Self {
+    fn load() -> Self {
         let mut reader = csv::Reader::from_path(FNAME).unwrap();
         let players = reader.deserialize().flatten().collect();
         Self(players)
     }
-    pub fn save(self) {
+    fn save(self) {
         let mut writer = csv::Writer::from_path(FNAME).unwrap();
         self.0.iter().for_each(|p| writer.serialize(p).unwrap());
         writer.flush().unwrap();
     }
-    // pub fn shuffle(&mut self) {
-    //     fastrand::shuffle(&mut self.players);
-    // }
     fn sort_as_pairs(&mut self) {
         if self.0.is_empty() {
             return;
@@ -79,7 +76,7 @@ impl Players {
         }
         self.0 = as_pairs;
     }
-    pub fn transform(&self) -> Vec<(Player, Player)> {
+    fn transform(&self) -> Vec<(Player, Player)> {
         let mut hmm = self.clone();
         assert_eq!(hmm.0.len() % 2, 0);
         hmm.sort_as_pairs();
@@ -224,10 +221,25 @@ impl App {
     //         ..self
     //     }
     // }
-    pub fn with_players(self, players: Players) -> Self {
+    fn with_players(self, players: Players) -> Self {
+        let mut new_win = players;
+        let mut new_lose = Players::default();
+        if new_win.0.len() % 2 == 1 {
+            new_win.sort_as_pairs(); // shuffle
+            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
+            let w_match = Match {
+                homie,
+                guest,
+                outcome: None,
+            }; // create a match
+            println!("\nspecial winner match: {w_match}");
+            let (winner, loser) = w_match.play(); // play it
+            new_win.0.push(winner); // winner stays
+            new_lose.0.push(loser); // loser get's pushed to loser branch
+        }
         Self {
-            winning: players.into(),
-            ..self
+            winning: new_win.into(),
+            losing: new_lose.into(),
         }
     }
     fn play_next_round(&mut self) {
@@ -246,6 +258,10 @@ impl App {
         }
         println!("-----------------");
         while let Some(l_match) = self.losing.pop() {
+            if l_match.guest == Player::default() {
+                new_lose.0.push(l_match.homie);
+                break;
+            }
             println!("\nloser match: {l_match}");
             let (winner, loser) = l_match.play();
             new_lose.0.push(winner);
