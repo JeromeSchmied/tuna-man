@@ -24,7 +24,7 @@ impl std::fmt::Display for Player {
             &self.class[..2]
         };
         let class = format!("{class}{}", self.class.chars().next_back().unwrap());
-        write!(f, "{} - {}", self.name, class)
+        write!(f, "{} - {class}", self.name)
     }
 }
 
@@ -209,19 +209,8 @@ impl Match {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-struct App {
-    winning: Vec<Match>,
-    losing: Vec<Match>,
-}
-impl App {
-    // pub fn with_tables(self, tables: &[Table]) -> Self {
-    //     Self {
-    //         tables: tables.into(),
-    //         ..self
-    //     }
-    // }
-    fn from_players(players: Players) -> Self {
+impl From<Players> for App {
+    fn from(players: Players) -> Self {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
@@ -242,6 +231,20 @@ impl App {
             losing: new_lose.into(),
         }
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+struct App {
+    winning: Vec<Match>,
+    losing: Vec<Match>,
+}
+impl App {
+    // pub fn with_tables(self, tables: &[Table]) -> Self {
+    //     Self {
+    //         tables: tables.into(),
+    //         ..self
+    //     }
+    // }
     fn play_next_round(&mut self) {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
@@ -352,7 +355,7 @@ impl App {
 fn main() -> std::io::Result<()> {
     let players = Players::load()?;
     // let tables = vec![Table::default(); 4];
-    let mut app = App::from_players(players);
+    let mut app = App::from(players);
     println!("{app:#?}");
     let mut i = 0;
     while !app.winning.is_empty() || !app.losing.is_empty() {
