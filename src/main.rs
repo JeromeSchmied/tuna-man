@@ -5,27 +5,40 @@ use serde::{Deserialize, Serialize};
 
 pub mod ui;
 
+// TODO: pass as arg, maybe use [`clap`](https://lib.rs/crates/clap)
 const FNAME: &str = "data.csv";
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Player {
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
+struct Player {
     /// name of the Player
     name: String,
     /// first two chars: grade: 00, 09, 10, 11, 12
     /// last char: id: A,B,C,D for now
     class: String, // TODO: don't shoot at this little birdie with such a cannon
-    points: u8,
 }
-impl Player {}
+impl std::fmt::Display for Player {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let class = if self.class[..2] == *"01" {
+            "9Ny"
+        } else {
+            &self.class[..2]
+        };
+        let class = format!("{class}{}", self.class.chars().next_back().unwrap());
+        write!(f, "{} - {}", self.name, class)
+    }
+}
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-struct Players {
-    players: Vec<Player>,
-}
+struct Players(Vec<Player>);
 impl From<Players> for Vec<Match> {
     fn from(players: Players) -> Self {
-        if players.players.len() % 2 != 0 {
-            panic!("error: number of players should be even");
+        if players.0.len() == 1 {
+            let halfset_match = Match {
+                homie: players.0[0].clone(),
+                guest: Player::default(),
+                outcome: None,
+            };
+            return vec![halfset_match];
         }
         players
             .transform()
@@ -38,30 +51,43 @@ impl Players {
     pub fn load() -> Self {
         let mut reader = csv::Reader::from_path(FNAME).unwrap();
         let players = reader.deserialize().flatten().collect();
-        Self { players }
+        Self(players)
     }
     pub fn save(self) {
         let mut writer = csv::Writer::from_path(FNAME).unwrap();
-        self.players
-            .iter()
-            .for_each(|p| writer.serialize(p).unwrap());
+        self.0.iter().for_each(|p| writer.serialize(p).unwrap());
         writer.flush().unwrap();
     }
     // pub fn shuffle(&mut self) {
     //     fastrand::shuffle(&mut self.players);
     // }
-    pub fn transform(&self) -> Vec<(Player, Player)> {
-        let mut players = self.players.clone();
-        fastrand::shuffle(&mut players);
-        let mut res = Vec::new();
-        while !players.is_empty() {
-            // dbg!(&players);
-            // dbg!(&res);
-            let cnt = players.remove(0);
-            let idx = Self::diff_list(&players, &cnt)
+    fn sort_as_pairs(&mut self) {
+        if self.0.is_empty() {
+            return;
+        }
+        fastrand::shuffle(&mut self.0);
+        let mut as_pairs = Vec::new();
+        while self.0.len() > 1 {
+            let cnt = self.0.remove(0);
+            let idx = Self::diff_list(&self.0, &cnt)
                 .expect("possibly number of players isn't divisible by two");
-            let pair = (cnt, players.remove(idx));
-            res.push(pair);
+            as_pairs.push(cnt);
+            as_pairs.push(self.0.remove(idx));
+        }
+        if self.0.len() == 1 {
+            as_pairs.push(self.0.pop().unwrap());
+        }
+        self.0 = as_pairs;
+    }
+    pub fn transform(&self) -> Vec<(Player, Player)> {
+        let mut hmm = self.clone();
+        assert_eq!(hmm.0.len() % 2, 0);
+        hmm.sort_as_pairs();
+        let mut res = Vec::new();
+        while !hmm.0.is_empty() {
+            let cnt = hmm.0.remove(0);
+            let next = hmm.0.remove(0);
+            res.push((cnt, next));
         }
         res
     }
@@ -70,6 +96,8 @@ impl Players {
     /// returns index
     ///
     /// # Implementation
+    ///
+    /// greedy.
     ///
     /// calculate diff_list, move the one with highest value from players to results
     /// calculation: least similar class:
@@ -89,8 +117,6 @@ impl Players {
             } else if hay.class[..2] == p.class[..2] {
                 2
             } else if hay.class.chars().nth(2) == p.class.chars().nth(2) {
-                // dbg!(hay);
-                // dbg!(p);
                 3
             } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
                 || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
@@ -102,6 +128,10 @@ impl Players {
             if diff > max.1 {
                 max.1 = diff;
                 max.0 = Some(i);
+                // found one that's already highest value, use it
+                if max.0 == Some(5) {
+                    break;
+                }
             }
         }
         // dbg!(max);
@@ -123,20 +153,7 @@ struct Match {
 }
 impl std::fmt::Display for Match {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let outcome_disp = if let Some(oc) = self.outcome {
-            if oc {
-                self.homie.name.as_str()
-            } else {
-                self.guest.name.as_str()
-            }
-        } else {
-            ""
-        };
-        write!(
-            f,
-            "{} <-> {}\t-\t{outcome_disp}",
-            self.homie.name, self.guest.name
-        )
+        write!(f, "{} <-> {}", self.homie.name, self.guest.name)
     }
 }
 impl From<(Player, Player)> for Match {
@@ -149,18 +166,18 @@ impl From<(Player, Player)> for Match {
     }
 }
 impl Match {
-    fn winner(&self) -> Player {
+    fn winner(&mut self) -> Player {
         if self.outcome.is_some_and(|oc| oc) {
-            self.homie.clone()
+            std::mem::take(&mut self.homie)
         } else {
-            self.guest.clone()
+            std::mem::take(&mut self.guest)
         }
     }
-    fn loser(&self) -> Player {
+    fn loser(&mut self) -> Player {
         if self.outcome.is_some_and(|oc| oc) {
-            self.guest.clone()
+            std::mem::take(&mut self.guest)
         } else {
-            self.homie.clone()
+            std::mem::take(&mut self.homie)
         }
     }
     fn with_outcome(self, outcome: bool) -> Self {
@@ -170,23 +187,28 @@ impl Match {
         }
     }
     fn read_outcome(&mut self) {
-        print!("outcome: ");
+        print!("winner: ");
         std::io::stdout().flush().unwrap();
         let mut buf = String::new();
         std::io::stdin().read_line(&mut buf).unwrap();
         self.outcome = match buf.trim() {
-            "1" | "homie" => Some(true),
-            "0" | "guest" => Some(false),
+            "<" | "homie" => Some(true),
+            ">" | "guest" => Some(false),
             name => {
-                if self.homie.name.contains(name) {
+                let name = name.to_ascii_lowercase();
+                if self.homie.name.contains(&name) {
                     Some(true)
-                } else if self.guest.name.contains(name) {
+                } else if self.guest.name.contains(&name) {
                     Some(false)
                 } else {
                     unreachable!("invalid input");
                 }
             }
         };
+    }
+    fn play(mut self) -> (Player, Player) {
+        self.read_outcome();
+        (self.winner(), self.loser())
     }
 }
 
@@ -212,93 +234,76 @@ impl App {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
         // get outcomes
-        for w_match in self.winning.iter_mut() {
-            println!("match: {w_match}");
-            w_match.read_outcome();
-            let mut winner = w_match.winner();
-            winner.points += 1;
-            new_win.players.push(winner);
-
-            let loser = w_match.loser();
-            new_lose.players.push(loser);
+        while let Some(w_match) = self.winning.pop() {
+            if w_match.guest == Player::default() {
+                new_win.0.push(w_match.homie);
+                break;
+            }
+            println!("\nwinner match: {w_match}");
+            let (winner, loser) = w_match.play();
+            new_win.0.push(winner);
+            new_lose.0.push(loser);
         }
-        for l_match in self.losing.iter_mut() {
-            println!("match: {l_match}");
-            l_match.read_outcome();
-            let mut winner = l_match.winner();
-            winner.points += 1;
-            new_lose.players.push(winner);
+        println!("-----------------");
+        while let Some(l_match) = self.losing.pop() {
+            println!("\nloser match: {l_match}");
+            let (winner, loser) = l_match.play();
+            new_lose.0.push(winner);
+            println!("bye-bye {loser}");
         }
-        // if self.winning.len() == 1 || self.losing.len() == 1 {
-        //     let w_match = self.winning[0];
-        //     println!("winning: {w_match}");
-        //     w_match.read_outcome();
-        //     let w_winner = w_match.winner();
 
-        //     let l_match = self.losing[0];
-        //     println!("losing: {l_match}");
-        //     l_match.read_outcome();
-        //     let l_winner =
-        //     let last_match = Match {
-        //         homie: w_winner,
-        //         guest: l_match,
-        //         outcome: None,
-        //     };
-        //     println!("match: {last_match}");
-        //     last_match.read_outcome();
-        //     new_win.players.push(self.winning[0].clone());
-        //     std::process::exit(0);
-        // }
+        if new_win.0.len() == 1 {
+            println!(
+                "probably should end soon, only winner branch remainder: {}",
+                new_win.0[0]
+            );
+        } else if new_win.0.len() % 2 == 1 {
+            new_win.sort_as_pairs(); // shuffle
+            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
+            let w_match = Match {
+                homie,
+                guest,
+                outcome: None,
+            }; // create a match
+            println!("\nspecial winner match: {w_match}");
+            let (winner, loser) = w_match.play(); // play it
+            new_win.0.push(winner); // winner stays
+            new_lose.0.push(loser); // loser get's pushed to loser branch
+        }
+
+        if new_lose.0.len() == 1 {
+            let homie = new_win.0.pop().unwrap();
+            let guest = new_lose.0.pop().unwrap();
+            let finals = Match {
+                homie,
+                guest,
+                outcome: None,
+            };
+            println!("FINAL GAME: {}", finals);
+            let (winner, second) = finals.play();
+            println!("WINNER: {winner}");
+            println!("SECOND PLACE: {second}");
+            return;
+        } else if new_lose.0.len() % 2 == 1 {
+            new_lose.sort_as_pairs(); // shuffle
+            let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
+            let l_match = Match {
+                homie,
+                guest,
+                outcome: None,
+            }; // create a match
+            println!("\nspecial loser match: {l_match}");
+            let (winner, loser) = l_match.play(); // play it
+            new_lose.0.push(winner); // winner stays
+            println!("bye-bye {loser}"); // loser get's eleminated
+        }
         dbg!(&new_win);
         dbg!(&new_lose);
-        // TODO: 5th place stuff
-        if new_lose.players.len() == 3 {
-            new_lose.players.pop();
-            // std::process::exit(0);
-        }
-        if new_win.players.len() == 1 {
-            if new_lose.players.len() == 2 {
-                let l_match: Vec<Match> = new_lose.clone().into();
-                let mut l_match = l_match[0].clone();
-                println!("l_match: {l_match}");
-                l_match.read_outcome();
-                let mut second = l_match.winner();
-                second.points += 1;
-                println!("winner: {:?}", new_win.players[0]);
-                println!("second: {:?}", second);
-                std::process::exit(0);
-            }
-            let l_match: Vec<Match> = new_lose.clone().into();
-            let mut l_match = l_match[0].clone();
-            println!("l_match: {l_match}");
-            l_match.read_outcome();
-            let mut winner = l_match.winner();
-            winner.points += 1;
-            new_win.players.push(winner);
-            // std::process::exit(0);
-        }
         *self = Self {
             winning: new_win.into(),
             losing: new_lose.into(),
         };
     }
-    // pub fn fill_tables(&mut self) {
-    //     let wating = if self.players.players.len() % 2 != 0 {
-    //         self.players.players.pop()
-    //     } else {
-    //         None
-    //     };
-    //     let mut pairs = self.players.transform();
-    //     for table in self.tables.iter_mut() {
-    //         let pair = if let Some(pp) = pairs.pop() {
-    //             (Some(pp.0), Some(pp.1))
-    //         } else {
-    //             (None, None)
-    //         };
-    //         table.homie = pair.0;
-    //         table.opponent = pair.1;
-    //     }
-    // }
     // pub fn execute(
     //     &mut self,
     //     term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
@@ -333,9 +338,11 @@ fn main() -> std::io::Result<()> {
     // let tables = vec![Table::default(); 4];
     let mut app = App::default().with_players(players);
     println!("{app:#?}");
-    while !app.winning.is_empty() && !app.winning.is_empty() {
+    let mut i = 0;
+    while !app.winning.is_empty() || !app.losing.is_empty() {
         app.play_next_round();
-        println!("{app:#?}");
+        println!("{i}\n{app:#?}");
+        i += 1;
     }
 
     // players.save();
@@ -349,4 +356,10 @@ fn main() -> std::io::Result<()> {
     // ratatui::try_restore()?;
 
     // res
+}
+#[test]
+fn does_it_contain() {
+    let hay = "";
+    let haystack = ["One Two", "Three Four", "Plum Pear"];
+    assert!(haystack.iter().any(|s| s.contains(hay))); // NOTE: wow! it does.
 }
