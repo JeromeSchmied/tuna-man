@@ -14,14 +14,22 @@ struct Player {
     name: String,
     /// first two chars: grade: 00, 09, 10, 11, 12
     /// last char: id: A,B,C,D for now
-    class: String, // TODO: don't shoot at this little birdie with such a cannon
+    class: String, // TODO: don't shoot at this little birdie with such a cannon if possible
+}
+impl Player {
+    fn grade(&self) -> &str {
+        &self.class[..2]
+    }
+    fn class_id(&self) -> char {
+        self.class.chars().next_back().unwrap()
+    }
 }
 impl std::fmt::Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let class = if self.class[..2] == *"01" {
+        let class = if self.grade() == "00" {
             "9Ny"
         } else {
-            &self.class[..2]
+            self.grade()
         };
         let class = format!("{class}{}", self.class.chars().next_back().unwrap());
         write!(f, "{} - {class}", self.name)
@@ -77,13 +85,13 @@ impl Players {
         self.0 = as_pairs;
     }
     fn transform(&self) -> Vec<(Player, Player)> {
-        let mut hmm = self.clone();
-        assert_eq!(hmm.0.len() % 2, 0);
-        hmm.sort_as_pairs();
+        let mut players = self.clone();
+        assert_eq!(players.0.len() % 2, 0);
+        players.sort_as_pairs();
         let mut res = Vec::new();
-        while !hmm.0.is_empty() {
-            let cnt = hmm.0.remove(0);
-            let next = hmm.0.remove(0);
+        while !players.0.is_empty() {
+            let cnt = players.0.remove(0);
+            let next = players.0.remove(0);
             res.push((cnt, next));
         }
         res
@@ -101,8 +109,7 @@ impl Players {
     /// 1 same class: grade+id
     /// 2 same id
     /// 3 same grade
-    /// 4 same name
-    /// 5 nothing in common (based on known things) cool!
+    /// 4 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
         // dbg!(hay);
         // dbg!(haystack);
@@ -110,23 +117,22 @@ impl Players {
         let mut max: (Option<usize>, u8) = (None, 0);
         for (i, p) in haystack.iter().enumerate() {
             let diff = if hay.class == p.class {
+                // same class
                 1
-            } else if hay.class[..2] == p.class[..2] {
+            } else if hay.grade() == p.grade() {
+                // same grade
                 2
-            } else if hay.class.chars().nth(2) == p.class.chars().nth(2) {
+            } else if hay.class_id() == p.class_id() {
+                // same class id
                 3
-            } else if hay.name.split_whitespace().next() == p.name.split_whitespace().next()
-                || hay.name.split_whitespace().next_back() == p.name.split_whitespace().next_back()
-            {
-                4
             } else {
-                5
+                4
             };
             if diff > max.1 {
                 max.1 = diff;
                 max.0 = Some(i);
                 // found one that's already highest value, use it
-                if max.0 == Some(5) {
+                if max.0 == Some(4) {
                     break;
                 }
             }
