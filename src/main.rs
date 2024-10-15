@@ -255,16 +255,18 @@ impl From<Players> for Tournament {
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
         Self {
-            winning: new_win.into(),
-            losing: new_lose.into(),
+            winner_branch: new_win.into(),
+            loser_branch: new_lose.into(),
+            knocked: Players::default(),
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 struct Tournament {
-    winning: Vec<Match>,
-    losing: Vec<Match>,
+    winner_branch: Vec<Match>,
+    loser_branch: Vec<Match>,
+    knocked: Players,
 }
 impl Tournament {
     // pub fn with_tables(self, tables: &[Table]) -> Self {
@@ -276,8 +278,9 @@ impl Tournament {
     fn play_next_round(&mut self) {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
+        let mut knocked = std::mem::take(&mut self.knocked);
         // get outcomes
-        while let Some(w_match) = self.winning.pop() {
+        while let Some(w_match) = self.winner_branch.pop() {
             if w_match.guest == Player::default() {
                 new_win.0.push(w_match.homie);
                 break;
@@ -288,7 +291,7 @@ impl Tournament {
             new_lose.0.push(loser);
         }
         println!("\n-----------------------------");
-        while let Some(l_match) = self.losing.pop() {
+        while let Some(l_match) = self.loser_branch.pop() {
             if l_match.guest == Player::default() {
                 new_lose.0.push(l_match.homie);
                 break;
@@ -297,6 +300,7 @@ impl Tournament {
             let (winner, loser) = l_match.play();
             new_lose.0.push(winner);
             println!("bye-bye {loser}");
+            knocked.0.push(loser);
         }
 
         if new_win.0.len() == 1 {
@@ -328,9 +332,8 @@ impl Tournament {
             };
             println!("FINAL GAME: {finals}");
             let (winner, second) = finals.play();
-            println!("WINNER: {winner}");
-            println!("SECOND PLACE: {second}");
-            return;
+            knocked.0.push(second);
+            knocked.0.push(winner);
         } else if new_lose.0.len() % 2 == 1 {
             new_lose.sort_as_pairs(); // shuffle
             let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
@@ -343,12 +346,14 @@ impl Tournament {
             let (winner, loser) = l_match.play(); // play it
             new_lose.0.push(winner); // winner stays
             println!("bye-bye {loser}"); // loser get's eleminated
+            knocked.0.push(loser);
         }
         // dbg!(&new_win);
         // dbg!(&new_lose);
         *self = Self {
-            winning: new_win.into(),
-            losing: new_lose.into(),
+            winner_branch: new_win.into(),
+            loser_branch: new_lose.into(),
+            knocked,
         };
     }
     // pub fn execute(
@@ -385,18 +390,26 @@ fn main() -> std::io::Result<()> {
     // let tables = vec![Table::default(); 4];
     let mut app = Tournament::from(players);
     let mut i = 0;
-    while !app.winning.is_empty() || !app.losing.is_empty() {
+    while !app.winner_branch.is_empty() || !app.loser_branch.is_empty() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
-        for w_match in &app.winning {
+        for w_match in &app.winner_branch {
             println!("    {w_match}");
         }
         println!("\n-----------------------------\n\nLosing branch matches:\n");
-        for l_match in &app.losing {
+        for l_match in &app.loser_branch {
             println!("    {l_match}");
         }
         println!("\n-----------------------------\n\n");
         app.play_next_round();
         i += 1;
+    }
+    println!("\n\nPODIUM\n------\n");
+    println!("Winner: {}", app.knocked.0.pop().unwrap());
+    println!("Second place: {}", app.knocked.0.pop().unwrap());
+    println!("Third place: {}", app.knocked.0.pop().unwrap());
+    println!("\nrunner-ups\n");
+    for (place, player) in app.knocked.0.iter().rev().enumerate() {
+        println!("{}. place: {player}\n", place + 4);
     }
 
     // players.save();
