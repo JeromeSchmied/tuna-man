@@ -439,12 +439,13 @@ impl Tournament {
 }
 
 const HELP_MSG: &str = "\
-A double-knockout tournament manager program not yet universal.
+A double-knockout tournament manager program.
    
 USAGE: pingpong <ARGS> [OPTIONS]
     
 ARGS:
     FILE: the path to the .csv file containing players in this format: <player_name>,<player_class>
+          where ,<player_class> is optional
     
 OPTIONS:
     -h | --help: show this message";
@@ -508,3 +509,4 @@ fn does_it_contain() {
     let haystack = ["One Two", "Three Four", "Plum Pear"];
     assert!(haystack.iter().any(|s| s.contains(hay))); // NOTE: wow! it does.
 }
+// TODO: actual tests
