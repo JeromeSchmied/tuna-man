@@ -422,28 +422,28 @@ fn main() -> std::io::Result<()> {
 
     let players = Players::load(f_path)?;
     // let tables = vec![Table::default(); 4];
-    let mut app = Tournament::from(players);
+    let mut tournament = Tournament::from(players);
     let mut i = 0;
-    while !app.is_end() {
+    while !tournament.is_end() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
-        for w_match in &app.winner_branch {
+        for w_match in &tournament.winner_branch {
             println!("    {w_match}");
         }
         println!("\n-----------------------------\n\nLosing branch matches:\n");
-        for l_match in &app.loser_branch {
+        for l_match in &tournament.loser_branch {
             println!("    {l_match}");
         }
         println!("\n-----------------------------\n\n");
-        app.play_next_round();
+        tournament.play_next_round();
         i += 1;
     }
     println!("\nTournament ended in {i} rounds, Results:");
     println!("\n\nPODIUM\n------\n");
-    println!("Winner: {}", app.knocked.0.pop().unwrap());
-    println!("Second place: {}", app.knocked.0.pop().unwrap());
-    println!("Third place: {}", app.knocked.0.pop().unwrap());
+    println!("Winner: {}", tournament.knocked.0.pop().unwrap());
+    println!("Second place: {}", tournament.knocked.0.pop().unwrap());
+    println!("Third place: {}", tournament.knocked.0.pop().unwrap());
     println!("\nrunner-ups\n");
-    for (place, player) in app.knocked.0.iter().rev().enumerate() {
+    for (place, player) in tournament.knocked.0.iter().rev().enumerate() {
         println!("{}. place: {player}", place + 4);
     }
 
