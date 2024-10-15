@@ -50,7 +50,7 @@ struct Player {
     /// name of the Player
     name: String,
     /// class of player
-    class: Class,
+    class: Option<Class>,
 }
 impl Player {
     fn is_unset(&self) -> bool {
@@ -63,12 +63,19 @@ impl std::fmt::Display for Player {
             write!(f, "{{waiting for player...}}")?;
             return Ok(());
         }
-        let class = if self.class.grade == [0; 2] {
-            format!("9Ny{}", self.class.id)
+        let class = if let Some(class) = self.class {
+            format!(
+                ", {}",
+                if class.grade == [0; 2] {
+                    format!("9Ny{}", class.id)
+                } else {
+                    class.into()
+                }
+            )
         } else {
-            self.class.into()
+            "".into()
         };
-        write!(f, "{}, {class}", self.name)
+        write!(f, "{}{class}", self.name)
     }
 }
 
@@ -150,18 +157,19 @@ impl Players {
     /// 3 same grade
     /// 4 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
-        // dbg!(hay);
-        // dbg!(haystack);
+        if hay.class.is_none() {
+            return Some(0);
+        }
         // index, value
         let mut max: (Option<usize>, u8) = (None, 0);
         for (i, p) in haystack.iter().enumerate() {
             let diff = if hay.class == p.class {
                 // same class
                 1
-            } else if hay.class.grade == p.class.grade {
+            } else if hay.class.unwrap().grade == p.class.unwrap().grade {
                 // same grade
                 2
-            } else if hay.class.id == p.class.id {
+            } else if hay.class.unwrap().id == p.class.unwrap().id {
                 // same class id
                 3
             } else {
