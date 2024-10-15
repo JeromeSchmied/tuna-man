@@ -239,6 +239,11 @@ impl Match {
 
 impl From<Players> for Tournament {
     fn from(players: Players) -> Self {
+        assert!(
+            players.0.len() >= 3,
+            "you need at least 3 participants to play a tournament"
+        );
+
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
