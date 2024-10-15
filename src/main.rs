@@ -1,12 +1,9 @@
-use std::io::Write;
+use std::{io::Write, path::Path};
 
 // use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use serde::{Deserialize, Serialize};
 
 pub mod ui;
-
-// TODO: pass as arg, maybe use [`clap`](https://lib.rs/crates/clap)
-const FNAME: &str = "data.csv";
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
 struct Player {
@@ -60,13 +57,13 @@ impl From<Players> for Vec<Match> {
     }
 }
 impl Players {
-    fn load() -> std::io::Result<Self> {
-        let mut reader = csv::Reader::from_path(FNAME)?;
+    fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
+        let mut reader = csv::Reader::from_path(path)?;
         let players = reader.deserialize().flatten().collect();
         Ok(Self(players))
     }
-    fn save(self) -> std::io::Result<()> {
-        let mut writer = csv::Writer::from_path(FNAME)?;
+    fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
+        let mut writer = csv::Writer::from_path(path)?;
         self.0.iter().for_each(|p| writer.serialize(p).unwrap());
         writer.flush()
     }
@@ -389,8 +386,33 @@ impl Tournament {
     //     Ok(())
     // }
 }
+
+const HELP_MSG: &str = "\
+A double-knockout tournament manager program not yet universal.
+   
+USAGE: pingpong <ARGS> [OPTIONS]
+    
+ARGS:
+    FILE: the path to the .csv file containing players in this format: <player_name>,<player_class>
+    
+OPTIONS:
+    -h | --help: show this message";
 fn main() -> std::io::Result<()> {
-    let players = Players::load()?;
+    // TODO: maybe use [`clap`](https://lib.rs/crates/clap) in the future
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if args
+        .iter()
+        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
+    {
+        println!("{HELP_MSG}");
+        std::process::exit(0);
+    }
+    let Some(f_path) = args.first() else {
+        println!("{HELP_MSG}");
+        std::process::exit(1);
+    };
+
+    let players = Players::load(f_path)?;
     // let tables = vec![Table::default(); 4];
     let mut app = Tournament::from(players);
     let mut i = 0;
