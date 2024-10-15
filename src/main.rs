@@ -1,9 +1,40 @@
-use std::{io::Write, path::Path};
-
-// use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use serde::{Deserialize, Serialize};
+use std::{io::Write, path::Path};
+// use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 pub mod ui;
+
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
+)]
+#[serde(from = "&str")]
+#[serde(into = "String")]
+struct Class {
+    grade: [u8; 2],
+    id: char,
+}
+impl From<&str> for Class {
+    fn from(s: &str) -> Self {
+        let mut x = s.chars();
+        let id = x.next_back().unwrap();
+        let grade = [
+            x.next().unwrap().to_digit(10).unwrap() as u8,
+            x.next().unwrap().to_digit(10).unwrap() as u8,
+        ];
+        Self { grade, id }
+    }
+}
+impl From<Class> for String {
+    fn from(value: Class) -> Self {
+        format!("{}{}{}", value.grade[0], value.grade[1], value.id)
+    }
+}
+impl std::fmt::Display for Class {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s: String = (*self).into();
+        write!(f, "{s}")
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
 struct Player {
@@ -11,28 +42,24 @@ struct Player {
     name: String,
     /// first two chars: grade: 00, 09, 10, 11, 12
     /// last char: id: A,B,C,D for now
-    class: String, // TODO: don't shoot at this little birdie with such a cannon if possible
+    class: Class,
 }
 impl Player {
-    fn grade(&self) -> &str {
-        &self.class[..2]
-    }
-    fn class_id(&self) -> char {
-        self.class.chars().next_back().unwrap()
+    fn is_unset(&self) -> bool {
+        self == &Self::default()
     }
 }
 impl std::fmt::Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self == &Player::default() {
+        if self.is_unset() {
             write!(f, "{{waiting for player...}}")?;
             return Ok(());
         }
-        let class = if self.grade() == "00" {
-            "9Ny"
+        let class = if self.class.grade == [0; 2] {
+            format!("9Ny{}", self.class.id)
         } else {
-            self.grade()
+            self.class.into()
         };
-        let class = format!("{class}{}", self.class_id());
         write!(f, "{}, {class}", self.name)
     }
 }
@@ -70,32 +97,32 @@ impl Players {
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
-    fn sort_as_pairs(&mut self) {
+    fn shuffle_as_pairs(&mut self) {
         if self.0.is_empty() {
             return;
         }
         fastrand::shuffle(&mut self.0);
         let mut as_pairs = Vec::new();
         while self.0.len() > 1 {
-            let cnt = self.0.remove(0);
+            let cnt = self.0.swap_remove(0);
             let idx = Self::diff_list(&self.0, &cnt)
                 .expect("possibly number of players isn't divisible by two");
             as_pairs.push(cnt);
-            as_pairs.push(self.0.remove(idx));
+            as_pairs.push(self.0.swap_remove(idx));
         }
         if self.0.len() == 1 {
             as_pairs.push(self.0.pop().unwrap());
         }
         self.0 = as_pairs;
     }
-    fn transform(&self) -> Vec<(Player, Player)> {
-        let mut players = self.clone();
+    fn transform(self) -> Vec<(Player, Player)> {
+        let mut players = self;
         assert_eq!(players.0.len() % 2, 0);
-        players.sort_as_pairs();
+        players.shuffle_as_pairs();
         let mut res = Vec::new();
         while !players.0.is_empty() {
-            let cnt = players.0.remove(0);
-            let next = players.0.remove(0);
+            let cnt = players.0.swap_remove(0);
+            let next = players.0.swap_remove(0);
             res.push((cnt, next));
         }
         res
@@ -123,10 +150,10 @@ impl Players {
             let diff = if hay.class == p.class {
                 // same class
                 1
-            } else if hay.grade() == p.grade() {
+            } else if hay.class.grade == p.class.grade {
                 // same grade
                 2
-            } else if hay.class_id() == p.class_id() {
+            } else if hay.class.id == p.class.id {
                 // same class id
                 3
             } else {
@@ -136,7 +163,7 @@ impl Players {
                 max.1 = diff;
                 max.0 = Some(i);
                 // found one that's already highest value, use it
-                if max.0 == Some(4) {
+                if max.1 == 4 {
                     break;
                 }
             }
@@ -247,7 +274,7 @@ impl From<Players> for Tournament {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
-            new_win.sort_as_pairs(); // shuffle
+            new_win.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
             let w_match = Match {
                 homie,
@@ -286,7 +313,7 @@ impl Tournament {
         let mut knocked = std::mem::take(&mut self.knocked);
         // get outcomes
         while let Some(w_match) = self.winner_branch.pop() {
-            if w_match.guest == Player::default() {
+            if w_match.guest.is_unset() {
                 new_win.0.push(w_match.homie);
                 break;
             }
@@ -297,7 +324,7 @@ impl Tournament {
         }
         println!("\n-----------------------------");
         while let Some(l_match) = self.loser_branch.pop() {
-            if l_match.guest == Player::default() {
+            if l_match.guest.is_unset() {
                 new_lose.0.push(l_match.homie);
                 break;
             }
@@ -314,7 +341,7 @@ impl Tournament {
                 new_win.0[0]
             );
         } else if new_win.0.len() % 2 == 1 {
-            new_win.sort_as_pairs(); // shuffle
+            new_win.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
             let w_match = Match {
                 homie,
@@ -340,7 +367,7 @@ impl Tournament {
             knocked.0.push(second);
             knocked.0.push(winner);
         } else if new_lose.0.len() % 2 == 1 {
-            new_lose.sort_as_pairs(); // shuffle
+            new_lose.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
             let l_match = Match {
                 homie,
