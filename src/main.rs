@@ -26,13 +26,17 @@ impl Player {
 }
 impl std::fmt::Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self == &Player::default() {
+            write!(f, "{{waiting for player...}}")?;
+            return Ok(());
+        }
         let class = if self.grade() == "00" {
             "9Ny"
         } else {
             self.grade()
         };
-        let class = format!("{class}{}", self.class.chars().next_back().unwrap());
-        write!(f, "{} - {class}", self.name)
+        let class = format!("{class}{}", self.class_id());
+        write!(f, "{}, {class}", self.name)
     }
 }
 
@@ -142,11 +146,6 @@ impl Players {
     }
 }
 
-// #[derive(Clone, Debug, PartialEq, Eq, Default)]
-// struct Table {
-//     homie: Option<Player>,
-//     opponent: Option<Player>,
-// }
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Match {
     homie: Player,
@@ -156,7 +155,18 @@ struct Match {
 }
 impl std::fmt::Display for Match {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} <-> {}", self.homie.name, self.guest.name)
+        let outcome = self.outcome.map(|oc| {
+            if oc {
+                (&self.homie, &self.guest)
+            } else {
+                (&self.guest, &self.homie)
+            }
+        });
+        if let Some((winner, loser)) = outcome {
+            write!(f, "winner: {winner} <-> {loser} :loser")
+        } else {
+            write!(f, "{} <-> {}", self.homie, self.guest)
+        }
     }
 }
 impl From<(Player, Player)> for Match {
@@ -189,28 +199,40 @@ impl Match {
             ..self
         }
     }
-    fn read_outcome(&mut self) {
+    fn read_outcome(&mut self) -> Result<(), ()> {
         print!("winner: ");
-        std::io::stdout().flush().unwrap();
+        if std::io::stdout().flush().is_err() {
+            return Err(());
+        };
         let mut buf = String::new();
-        std::io::stdin().read_line(&mut buf).unwrap();
+        if std::io::stdin().read_line(&mut buf).is_err() {
+            return Err(());
+        };
         self.outcome = match buf.trim() {
             "<" | "homie" => Some(true),
             ">" | "guest" => Some(false),
             name => {
-                let name = name.to_ascii_lowercase();
-                if self.homie.name.contains(&name) {
+                let name = name.to_lowercase();
+                if self.homie.name.to_lowercase().contains(&name) {
                     Some(true)
-                } else if self.guest.name.contains(&name) {
+                } else if self.guest.name.to_lowercase().contains(&name) {
                     Some(false)
                 } else {
-                    unreachable!("invalid input");
+                    // dbg!(&name);
+                    if matches!(name.as_str(), "q" | "quit" | "exit") {
+                        std::process::exit(0);
+                    }
+                    return Err(());
                 }
             }
         };
+        // println!("{self}");
+        Ok(())
     }
     fn play(mut self) -> (Player, Player) {
-        self.read_outcome();
+        while self.read_outcome().is_err() {
+            println!("invalid input");
+        }
         (self.winner(), self.loser())
     }
 }
@@ -265,7 +287,7 @@ impl App {
             new_win.0.push(winner);
             new_lose.0.push(loser);
         }
-        println!("-----------------");
+        println!("\n-----------------------------");
         while let Some(l_match) = self.losing.pop() {
             if l_match.guest == Player::default() {
                 new_lose.0.push(l_match.homie);
@@ -322,8 +344,8 @@ impl App {
             new_lose.0.push(winner); // winner stays
             println!("bye-bye {loser}"); // loser get's eleminated
         }
-        dbg!(&new_win);
-        dbg!(&new_lose);
+        // dbg!(&new_win);
+        // dbg!(&new_lose);
         *self = Self {
             winning: new_win.into(),
             losing: new_lose.into(),
@@ -362,11 +384,18 @@ fn main() -> std::io::Result<()> {
     let players = Players::load()?;
     // let tables = vec![Table::default(); 4];
     let mut app = App::from(players);
-    println!("{app:#?}");
     let mut i = 0;
     while !app.winning.is_empty() || !app.losing.is_empty() {
+        println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
+        for w_match in &app.winning {
+            println!("    {w_match}");
+        }
+        println!("\n-----------------------------\n\nLosing branch matches:\n");
+        for l_match in &app.losing {
+            println!("    {l_match}");
+        }
+        println!("\n-----------------------------\n\n");
         app.play_next_round();
-        println!("{i}\n{app:#?}");
         i += 1;
     }
 
