@@ -356,6 +356,10 @@ impl Tournament {
             knocked,
         };
     }
+
+    fn is_end(&self) -> bool {
+        self.winner_branch.is_empty() && self.loser_branch.is_empty()
+    }
     // pub fn execute(
     //     &mut self,
     //     term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
@@ -390,7 +394,7 @@ fn main() -> std::io::Result<()> {
     // let tables = vec![Table::default(); 4];
     let mut app = Tournament::from(players);
     let mut i = 0;
-    while !app.winner_branch.is_empty() || !app.loser_branch.is_empty() {
+    while !app.is_end() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
         for w_match in &app.winner_branch {
             println!("    {w_match}");
@@ -403,13 +407,14 @@ fn main() -> std::io::Result<()> {
         app.play_next_round();
         i += 1;
     }
+    println!("\nTournament ended in {i} rounds, Results:");
     println!("\n\nPODIUM\n------\n");
     println!("Winner: {}", app.knocked.0.pop().unwrap());
     println!("Second place: {}", app.knocked.0.pop().unwrap());
     println!("Third place: {}", app.knocked.0.pop().unwrap());
     println!("\nrunner-ups\n");
     for (place, player) in app.knocked.0.iter().rev().enumerate() {
-        println!("{}. place: {player}\n", place + 4);
+        println!("{}. place: {player}", place + 4);
     }
 
     // players.save();
