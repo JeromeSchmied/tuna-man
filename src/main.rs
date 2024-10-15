@@ -7,21 +7,30 @@ pub mod ui;
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
 )]
-#[serde(from = "&str")]
+#[serde(try_from = "&str")]
 #[serde(into = "String")]
+/// two u8s: grade: 00, 09, 10, 11, 12
+/// char: id: A,B,C,D for now
 struct Class {
     grade: [u8; 2],
     id: char,
 }
-impl From<&str> for Class {
-    fn from(s: &str) -> Self {
-        let mut x = s.chars();
-        let id = x.next_back().unwrap();
-        let grade = [
-            x.next().unwrap().to_digit(10).unwrap() as u8,
-            x.next().unwrap().to_digit(10).unwrap() as u8,
-        ];
-        Self { grade, id }
+impl TryFrom<&str> for Class {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let mut x = value.chars();
+        let Some(id) = x.next_back() else {
+            return Err("invalid class id");
+        };
+        let Some(Some(a)) = x.next().map(|a| a.to_digit(10)) else {
+            return Err("invalid class grade");
+        };
+        let Some(Some(b)) = x.next().map(|b| b.to_digit(10)) else {
+            return Err("invalid class grade");
+        };
+        let grade = [a as u8, b as u8];
+        Ok(Self { grade, id })
     }
 }
 impl From<Class> for String {
@@ -40,8 +49,7 @@ impl std::fmt::Display for Class {
 struct Player {
     /// name of the Player
     name: String,
-    /// first two chars: grade: 00, 09, 10, 11, 12
-    /// last char: id: A,B,C,D for now
+    /// class of player
     class: Class,
 }
 impl Player {
