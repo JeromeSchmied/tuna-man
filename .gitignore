@@ -1,3 +1,4 @@
 /target
 players*
 **data.csv**
+exclude/*
