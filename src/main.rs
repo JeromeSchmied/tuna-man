@@ -59,12 +59,15 @@ impl From<Players> for Vec<Match> {
 impl Players {
     fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
         let mut reader = csv::Reader::from_path(path)?;
-        let players = reader.deserialize().flatten().collect();
+        let players = reader
+            .deserialize()
+            .flat_map(|x| x.inspect_err(|e| eprintln!("error: {e:#?}")))
+            .collect();
         Ok(Self(players))
     }
     fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
         let mut writer = csv::Writer::from_path(path)?;
-        self.0.iter().for_each(|p| writer.serialize(p).unwrap());
+        self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
     fn sort_as_pairs(&mut self) {
