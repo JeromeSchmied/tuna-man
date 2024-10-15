@@ -237,7 +237,7 @@ impl Match {
     }
 }
 
-impl From<Players> for App {
+impl From<Players> for Tournament {
     fn from(players: Players) -> Self {
         let mut new_win = players;
         let mut new_lose = Players::default();
@@ -262,11 +262,11 @@ impl From<Players> for App {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-struct App {
+struct Tournament {
     winning: Vec<Match>,
     losing: Vec<Match>,
 }
-impl App {
+impl Tournament {
     // pub fn with_tables(self, tables: &[Table]) -> Self {
     //     Self {
     //         tables: tables.into(),
@@ -383,7 +383,7 @@ impl App {
 fn main() -> std::io::Result<()> {
     let players = Players::load()?;
     // let tables = vec![Table::default(); 4];
-    let mut app = App::from(players);
+    let mut app = Tournament::from(players);
     let mut i = 0;
     while !app.winning.is_empty() || !app.losing.is_empty() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
