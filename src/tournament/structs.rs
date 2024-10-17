@@ -9,6 +9,12 @@ pub(crate) struct Player {
     pub(crate) class: Option<Class>,
 }
 impl Player {
+    pub fn new(name: impl AsRef<str>, class: Class) -> Self {
+        Self {
+            name: name.as_ref().into(),
+            class: Some(class),
+        }
+    }
     pub fn is_unset(&self) -> bool {
         self == &Self::default()
     }
@@ -45,6 +51,12 @@ impl std::fmt::Display for Player {
 pub(crate) struct Class {
     pub(crate) grade: [u8; 2],
     pub(crate) id: char,
+}
+
+impl Class {
+    pub fn new(grade: [u8; 2], id: char) -> Self {
+        Self { grade, id }
+    }
 }
 
 impl TryFrom<&str> for Class {
