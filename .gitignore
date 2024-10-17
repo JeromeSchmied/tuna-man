@@ -1,4 +1,4 @@
 /target
-players*
-**data.csv**
-exclude/*
+/exclude
+players*.csv
+**.bak
