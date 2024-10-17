@@ -1,38 +1,10 @@
+use std::path::Path;
+
 use players::Players;
 use structs::Match;
 
-pub(crate) mod players;
+mod players;
 mod structs;
-
-impl From<Players> for Tournament {
-    fn from(players: Players) -> Self {
-        assert!(
-            players.0.len() >= 3,
-            "you need at least 3 participants to play a tournament"
-        );
-
-        let mut new_win = players;
-        let mut new_lose = Players::default();
-        if new_win.0.len() % 2 == 1 {
-            new_win.shuffle_as_pairs(); // shuffle
-            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
-            let w_match = Match {
-                homie,
-                guest,
-                outcome: None,
-            }; // create a match
-            println!("\nspecial winner match: {w_match}");
-            let (winner, loser) = w_match.play(); // play it
-            new_win.0.push(winner); // winner stays
-            new_lose.0.push(loser); // loser get's pushed to loser branch
-        }
-        Self {
-            winner_branch: new_win.into(),
-            loser_branch: new_lose.into(),
-            knocked: Players::default(),
-        }
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub(crate) struct Tournament {
@@ -48,6 +20,13 @@ impl Tournament {
     //         ..self
     //     }
     // }
+    pub(crate) fn from_path(path: impl AsRef<Path>) -> std::io::Result<Self> {
+        let players = Players::load(path)?;
+        Ok(Self::from(players))
+    }
+    pub(crate) fn is_end(&self) -> bool {
+        self.winner_branch.is_empty() && self.loser_branch.is_empty()
+    }
     pub(crate) fn play_next_round(&mut self) {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
@@ -129,10 +108,6 @@ impl Tournament {
             knocked,
         };
     }
-
-    pub(crate) fn is_end(&self) -> bool {
-        self.winner_branch.is_empty() && self.loser_branch.is_empty()
-    }
     // pub fn execute(
     //     &mut self,
     //     term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
@@ -161,4 +136,34 @@ impl Tournament {
     //     }
     //     Ok(())
     // }
+}
+
+impl From<Players> for Tournament {
+    fn from(players: Players) -> Self {
+        assert!(
+            players.0.len() >= 3,
+            "you need at least 3 participants to play a tournament"
+        );
+
+        let mut new_win = players;
+        let mut new_lose = Players::default();
+        if new_win.0.len() % 2 == 1 {
+            new_win.shuffle_as_pairs(); // shuffle
+            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
+            let w_match = Match {
+                homie,
+                guest,
+                outcome: None,
+            }; // create a match
+            println!("\nspecial winner match: {w_match}");
+            let (winner, loser) = w_match.play(); // play it
+            new_win.0.push(winner); // winner stays
+            new_lose.0.push(loser); // loser get's pushed to loser branch
+        }
+        Self {
+            winner_branch: new_win.into(),
+            loser_branch: new_lose.into(),
+            knocked: Players::default(),
+        }
+    }
 }

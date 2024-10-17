@@ -30,9 +30,8 @@ fn main() -> std::io::Result<()> {
         std::process::exit(1);
     };
 
-    let players = tournament::players::Players::load(f_path)?;
     // let tables = vec![Table::default(); 4];
-    let mut tournament = Tournament::from(players);
+    let mut tournament = Tournament::from_path(f_path)?;
     let mut i = 0;
     while !tournament.is_end() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");

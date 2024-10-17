@@ -1,6 +1,40 @@
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
+pub(crate) struct Player {
+    /// name of the Player
+    pub(crate) name: String,
+    /// class of player
+    pub(crate) class: Option<Class>,
+}
+impl Player {
+    pub fn is_unset(&self) -> bool {
+        self == &Self::default()
+    }
+}
+impl std::fmt::Display for Player {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_unset() {
+            write!(f, "{{waiting for player...}}")?;
+            return Ok(());
+        }
+        let class = if let Some(class) = self.class {
+            format!(
+                ", {}",
+                if class.grade == [0; 2] {
+                    format!("9Ny{}", class.id)
+                } else {
+                    class.into()
+                }
+            )
+        } else {
+            "".into()
+        };
+        write!(f, "{}{class}", self.name)
+    }
+}
+
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
 )]
@@ -42,40 +76,6 @@ impl std::fmt::Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s: String = (*self).into();
         write!(f, "{s}")
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
-pub(crate) struct Player {
-    /// name of the Player
-    pub(crate) name: String,
-    /// class of player
-    pub(crate) class: Option<Class>,
-}
-impl Player {
-    pub fn is_unset(&self) -> bool {
-        self == &Self::default()
-    }
-}
-impl std::fmt::Display for Player {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.is_unset() {
-            write!(f, "{{waiting for player...}}")?;
-            return Ok(());
-        }
-        let class = if let Some(class) = self.class {
-            format!(
-                ", {}",
-                if class.grade == [0; 2] {
-                    format!("9Ny{}", class.id)
-                } else {
-                    class.into()
-                }
-            )
-        } else {
-            "".into()
-        };
-        write!(f, "{}{class}", self.name)
     }
 }
 

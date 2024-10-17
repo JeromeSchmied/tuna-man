@@ -4,23 +4,6 @@ use std::path::Path;
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(crate) struct Players(pub(crate) Vec<Player>);
 
-impl From<Players> for Vec<Match> {
-    fn from(players: Players) -> Self {
-        if players.0.len() == 1 {
-            let halfset_match = Match {
-                homie: players.0[0].clone(),
-                guest: Player::default(),
-                outcome: None,
-            };
-            return vec![halfset_match];
-        }
-        players
-            .transform()
-            .into_iter()
-            .map(std::convert::Into::into)
-            .collect()
-    }
-}
 impl Players {
     pub(crate) fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
         let mut reader = csv::Reader::from_path(path)?;
@@ -30,7 +13,7 @@ impl Players {
             .collect();
         Ok(Self(players))
     }
-    fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
+    pub(crate) fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
         let mut writer = csv::Writer::from_path(path)?;
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
@@ -109,5 +92,23 @@ impl Players {
         }
         // dbg!(max);
         max.0
+    }
+}
+
+impl From<Players> for Vec<Match> {
+    fn from(players: Players) -> Self {
+        if players.0.len() == 1 {
+            let halfset_match = Match {
+                homie: players.0[0].clone(),
+                guest: Player::default(),
+                outcome: None,
+            };
+            return vec![halfset_match];
+        }
+        players
+            .transform()
+            .into_iter()
+            .map(std::convert::Into::into)
+            .collect()
     }
 }
