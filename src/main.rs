@@ -1,61 +1,50 @@
+use std::process::exit;
+
+use args::Args;
+use clap::Parser;
+
 use tournament::Tournament;
 // use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
+mod args;
 mod tournament;
 mod ui;
 
-const HELP_MSG: &str = "\
-A double-knockout tournament manager program.
-   
-USAGE: pingpong <ARGS> [OPTIONS]
-    
-ARGS:
-    FILE: the path to the .csv file containing players in this format: <player_name>,<player_class>
-          where ,<player_class> is optional
-    
-OPTIONS:
-    -h | --help: show this message";
 fn main() -> std::io::Result<()> {
-    // TODO: maybe use [`clap`](https://lib.rs/crates/clap) in the future
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
-        println!("{HELP_MSG}");
-        std::process::exit(0);
-    }
-    let Some(f_path) = args.first() else {
-        println!("{HELP_MSG}");
-        std::process::exit(1);
-    };
+    let args = Args::parse();
 
-    // let tables = vec![Table::default(); 4];
-    let mut tournament = Tournament::from_path(f_path)?;
-    let mut i = 0;
-    while !tournament.is_end() {
-        println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
-        for w_match in &tournament.winner_branch {
-            println!("    {w_match}");
+    if let Some(f_path) = args.file.as_deref() {
+        // let tables = vec![Table::default(); 4];
+        let mut tournament = Tournament::from_path(f_path)?;
+        let mut i = 0;
+        while !tournament.is_end() {
+            println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
+            for w_match in &tournament.winner_branch {
+                println!("    {w_match}");
+            }
+            println!("\n-----------------------------\n\nLosing branch matches:\n");
+            for l_match in &tournament.loser_branch {
+                println!("    {l_match}");
+            }
+            println!("\n-----------------------------\n\n");
+            tournament.play_next_round();
+            i += 1;
         }
-        println!("\n-----------------------------\n\nLosing branch matches:\n");
-        for l_match in &tournament.loser_branch {
-            println!("    {l_match}");
+        println!("\nTournament ended in {i} rounds, Results:");
+        println!("\n\nPODIUM\n------\n");
+        println!("Winner: {}", tournament.knocked.0.pop().unwrap());
+        println!("Second place: {}", tournament.knocked.0.pop().unwrap());
+        println!("Third place: {}", tournament.knocked.0.pop().unwrap());
+        println!("\nrunner-ups\n");
+        for (place, player) in tournament.knocked.0.iter().rev().enumerate() {
+            println!("{}. place: {player}", place + 4);
         }
-        println!("\n-----------------------------\n\n");
-        tournament.play_next_round();
-        i += 1;
+    } else {
+        // TODO proper error handling
+        // Handle the case where no file path is provided
+        eprintln!("Error: No file path provided.");
+        exit(1);
     }
-    println!("\nTournament ended in {i} rounds, Results:");
-    println!("\n\nPODIUM\n------\n");
-    println!("Winner: {}", tournament.knocked.0.pop().unwrap());
-    println!("Second place: {}", tournament.knocked.0.pop().unwrap());
-    println!("Third place: {}", tournament.knocked.0.pop().unwrap());
-    println!("\nrunner-ups\n");
-    for (place, player) in tournament.knocked.0.iter().rev().enumerate() {
-        println!("{}. place: {player}", place + 4);
-    }
-
     // players.save();
 
     Ok(())
