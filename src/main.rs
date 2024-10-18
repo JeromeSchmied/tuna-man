@@ -1,37 +1,17 @@
+use args::Args;
+use clap::Parser;
 use tournament::Tournament;
 // use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
+mod args;
 mod tournament;
 mod ui;
 
-const HELP_MSG: &str = "\
-A double-knockout tournament manager program.
-   
-USAGE: pingpong <ARGS> [OPTIONS]
-    
-ARGS:
-    FILE: the path to the .csv file containing players in this format: <player_name>,<player_class>
-          where ,<player_class> is optional
-    
-OPTIONS:
-    -h | --help: show this message";
 fn main() -> std::io::Result<()> {
-    // TODO: maybe use [`clap`](https://lib.rs/crates/clap) in the future
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
-        println!("{HELP_MSG}");
-        std::process::exit(0);
-    }
-    let Some(f_path) = args.first() else {
-        println!("{HELP_MSG}");
-        std::process::exit(1);
-    };
+    let args = Args::parse();
 
     // let tables = vec![Table::default(); 4];
-    let mut tournament = Tournament::from_path(f_path)?;
+    let mut tournament = Tournament::from_path(args.file)?;
     let mut i = 0;
     while !tournament.is_end() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
