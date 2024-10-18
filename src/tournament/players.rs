@@ -131,15 +131,15 @@ mod tests {
     fn load() {
         assert_eq!(
             Players(vec![
-                Player::new("Central Mite", Class::new([1, 0], 'D')),
-                Player::new("Relative Wrasse", Class::new([1, 0], 'C')),
-                Player::new("Exotic Skunk", Class::new([0, 0], 'A')),
-                Player::new("Droll Jaguar", Class::new([1, 2], 'C')),
-                Player::new("Usable Bengal", Class::new([0, 9], 'C')),
-                Player::new("Inviting Pheasant", Class::new([1, 2], 'B')),
-                Player::new("Profound Ponytail", Class::new([0, 0], 'B')),
-                Player::new("Expectant Wolfhound", Class::new([0, 9], 'D')),
-                Player::new("Casual Ptarmigan", Class::new([1, 1], 'B'))
+                Player::new("Central Mite", Class::new(10, 'D')),
+                Player::new("Relative Wrasse", Class::new(10, 'C')),
+                Player::new("Exotic Skunk", Class::new(00, 'A')),
+                Player::new("Droll Jaguar", Class::new(12, 'C')),
+                Player::new("Usable Bengal", Class::new(9, 'C')),
+                Player::new("Inviting Pheasant", Class::new(12, 'B')),
+                Player::new("Profound Ponytail", Class::new(00, 'B')),
+                Player::new("Expectant Wolfhound", Class::new(9, 'D')),
+                Player::new("Casual Ptarmigan", Class::new(11, 'B'))
             ]),
             load_players()
         );
@@ -176,35 +176,35 @@ mod tests {
         assert_eq!(
             shrex(),
             (
-                Player::new("Central Mite", Class::new([1, 0], 'D')),
-                Player::new("Exotic Skunk", Class::new([0, 0], 'A'))
+                Player::new("Central Mite", Class::new(10, 'D')),
+                Player::new("Exotic Skunk", Class::new(00, 'A'))
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Relative Wrasse", Class::new([1, 0], 'C')),
-                Player::new("Inviting Pheasant", Class::new([1, 2], 'B')),
+                Player::new("Relative Wrasse", Class::new(10, 'C')),
+                Player::new("Inviting Pheasant", Class::new(12, 'B')),
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Droll Jaguar", Class::new([1, 2], 'C')),
-                Player::new("Profound Ponytail", Class::new([0, 0], 'B')),
+                Player::new("Droll Jaguar", Class::new(12, 'C')),
+                Player::new("Profound Ponytail", Class::new(00, 'B')),
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Usable Bengal", Class::new([0, 9], 'C')),
-                Player::new("Casual Ptarmigan", Class::new([1, 1], 'B'))
+                Player::new("Usable Bengal", Class::new(9, 'C')),
+                Player::new("Casual Ptarmigan", Class::new(11, 'B'))
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Expectant Wolfhound", Class::new([0, 9], 'D')),
+                Player::new("Expectant Wolfhound", Class::new(9, 'D')),
                 Player::default()
             )
         );
