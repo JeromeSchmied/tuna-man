@@ -127,19 +127,23 @@ mod tests {
         Players::load("Low for the sake of environment.bacilus").unwrap();
     }
 
+    fn nu_p(name: &str, grade: u8, id: char) -> Player {
+        Player::new(name, Class::new(grade, id))
+    }
+
     #[test]
     fn load() {
         assert_eq!(
             Players(vec![
-                Player::new("Central Mite", Class::new(10, 'D')),
-                Player::new("Relative Wrasse", Class::new(10, 'C')),
-                Player::new("Exotic Skunk", Class::new(00, 'A')),
-                Player::new("Droll Jaguar", Class::new(12, 'C')),
-                Player::new("Usable Bengal", Class::new(9, 'C')),
-                Player::new("Inviting Pheasant", Class::new(12, 'B')),
-                Player::new("Profound Ponytail", Class::new(00, 'B')),
-                Player::new("Expectant Wolfhound", Class::new(9, 'D')),
-                Player::new("Casual Ptarmigan", Class::new(11, 'B'))
+                nu_p("Central Mite", 10, 'D'),
+                nu_p("Relative Wrasse", 10, 'C'),
+                nu_p("Exotic Skunk", 00, 'A'),
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Usable Bengal", 9, 'C'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Profound Ponytail", 00, 'B'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+                nu_p("Casual Ptarmigan", 11, 'B')
             ]),
             load_players()
         );
@@ -175,38 +179,32 @@ mod tests {
 
         assert_eq!(
             shrex(),
+            (nu_p("Central Mite", 10, 'D'), nu_p("Exotic Skunk", 00, 'A'))
+        );
+        assert_eq!(
+            shrex(),
             (
-                Player::new("Central Mite", Class::new(10, 'D')),
-                Player::new("Exotic Skunk", Class::new(00, 'A'))
+                nu_p("Relative Wrasse", 10, 'C'),
+                nu_p("Inviting Pheasant", 12, 'B'),
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Relative Wrasse", Class::new(10, 'C')),
-                Player::new("Inviting Pheasant", Class::new(12, 'B')),
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Profound Ponytail", 00, 'B'),
             )
         );
         assert_eq!(
             shrex(),
             (
-                Player::new("Droll Jaguar", Class::new(12, 'C')),
-                Player::new("Profound Ponytail", Class::new(00, 'B')),
+                nu_p("Usable Bengal", 9, 'C'),
+                nu_p("Casual Ptarmigan", 11, 'B')
             )
         );
         assert_eq!(
             shrex(),
-            (
-                Player::new("Usable Bengal", Class::new(9, 'C')),
-                Player::new("Casual Ptarmigan", Class::new(11, 'B'))
-            )
-        );
-        assert_eq!(
-            shrex(),
-            (
-                Player::new("Expectant Wolfhound", Class::new(9, 'D')),
-                Player::default()
-            )
+            (nu_p("Expectant Wolfhound", 9, 'D'), Player::default())
         );
     }
 }
