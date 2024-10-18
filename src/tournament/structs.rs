@@ -64,13 +64,9 @@ impl TryFrom<&str> for Class {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let mut x = value.chars();
-        let Some(id) = x.next_back() else {
-            return Err("invalid class id");
-        };
+        let id = x.next_back().ok_or("invalid class id")?;
         let numbers = x.filter(|x| x.is_ascii_digit()).collect::<String>();
-        let Ok(grade) = numbers.parse::<u8>() else {
-            return Err("invalid grade number");
-        };
+        let grade = numbers.parse::<u8>().map_err(|_| "invalid grade number")?;
         Ok(Self { grade, id })
     }
 }
@@ -144,13 +140,9 @@ impl Duel {
     }
     fn read_outcome(&mut self) -> Result<(), ()> {
         print!("winner: ");
-        if std::io::stdout().flush().is_err() {
-            return Err(());
-        };
+        std::io::stdout().flush().map_err(|_| ())?;
         let mut buf = String::new();
-        if std::io::stdin().read_line(&mut buf).is_err() {
-            return Err(());
-        };
+        std::io::stdin().read_line(&mut buf).map_err(|_| ())?;
         self.outcome = match buf.trim() {
             "<" | "homie" => Some(true),
             ">" | "guest" => Some(false),
