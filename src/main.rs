@@ -36,13 +36,6 @@ fn main() -> std::io::Result<()> {
         println!("{}. place: {player}", place + 4);
     }
 
-    // else {
-    //     // TODO proper error handling
-    //     // Handle the case where no file path is provided
-    //     eprintln!("Error: No file path provided.");
-    //     exit(1);
-    // }
-
     // players.save();
 
     Ok(())
