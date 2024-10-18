@@ -91,14 +91,15 @@ impl std::fmt::Display for Class {
     }
 }
 
+/// A Duel/Match between two players.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Match {
+pub(crate) struct Duel {
     pub(crate) homie: Player,
     pub(crate) guest: Player,
     /// homie won: true, opponent won: false
     pub(crate) outcome: Option<bool>,
 }
-impl std::fmt::Display for Match {
+impl std::fmt::Display for Duel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let outcome = self.outcome.map(|oc| {
             if oc {
@@ -114,7 +115,7 @@ impl std::fmt::Display for Match {
         }
     }
 }
-impl From<(Player, Player)> for Match {
+impl From<(Player, Player)> for Duel {
     fn from(val: (Player, Player)) -> Self {
         Self {
             homie: val.0,
@@ -123,7 +124,7 @@ impl From<(Player, Player)> for Match {
         }
     }
 }
-impl Match {
+impl Duel {
     fn winner(&mut self) -> Player {
         if self.outcome.is_some_and(|oc| oc) {
             std::mem::take(&mut self.homie)
@@ -187,10 +188,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn match_from_players_tuple() {
+    fn duel_from_players_tuple() {
         let homie = Player::new("Prisca Virtus", Class::new([0, 0], 'D'));
         let guest = Player::new("Prius Quam", Class::new([1, 2], 'B'));
-        let duel = Match {
+        let duel = Duel {
             homie: homie.clone(),
             guest: guest.clone(),
             outcome: None,

@@ -1,15 +1,15 @@
 use std::path::Path;
 
 use players::Players;
-use structs::Match;
+use structs::Duel;
 
 mod players;
 mod structs;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub(crate) struct Tournament {
-    pub(crate) winner_branch: Vec<Match>,
-    pub(crate) loser_branch: Vec<Match>,
+    pub(crate) winner_branch: Vec<Duel>,
+    pub(crate) loser_branch: Vec<Duel>,
     pub(crate) knocked: Players,
 }
 
@@ -32,24 +32,24 @@ impl Tournament {
         let mut new_lose = Players::default();
         let mut knocked = std::mem::take(&mut self.knocked);
         // get outcomes
-        while let Some(w_match) = self.winner_branch.pop() {
-            if w_match.guest.is_unset() {
-                new_win.0.push(w_match.homie);
+        while let Some(w_duel) = self.winner_branch.pop() {
+            if w_duel.guest.is_unset() {
+                new_win.0.push(w_duel.homie);
                 break;
             }
-            println!("\nwinner match: {w_match}");
-            let (winner, loser) = w_match.play();
+            println!("\nwinner duel: {w_duel}");
+            let (winner, loser) = w_duel.play();
             new_win.0.push(winner);
             new_lose.0.push(loser);
         }
         println!("\n-----------------------------");
-        while let Some(l_match) = self.loser_branch.pop() {
-            if l_match.guest.is_unset() {
-                new_lose.0.push(l_match.homie);
+        while let Some(l_duel) = self.loser_branch.pop() {
+            if l_duel.guest.is_unset() {
+                new_lose.0.push(l_duel.homie);
                 break;
             }
-            println!("\nloser match: {l_match}");
-            let (winner, loser) = l_match.play();
+            println!("\nloser duel: {l_duel}");
+            let (winner, loser) = l_duel.play();
             new_lose.0.push(winner);
             println!("bye-bye {loser}");
             knocked.0.push(loser);
@@ -63,13 +63,13 @@ impl Tournament {
         } else if new_win.0.len() % 2 == 1 {
             new_win.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
-            let w_match = Match {
+            let w_duel = Duel {
                 homie,
                 guest,
                 outcome: None,
-            }; // create a match
-            println!("\nspecial winner match: {w_match}");
-            let (winner, loser) = w_match.play(); // play it
+            }; // create a duel
+            println!("\nspecial winner duel: {w_duel}");
+            let (winner, loser) = w_duel.play(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
@@ -77,7 +77,7 @@ impl Tournament {
         if new_lose.0.len() == 1 {
             let homie = new_win.0.pop().unwrap();
             let guest = new_lose.0.pop().unwrap();
-            let finals = Match {
+            let finals = Duel {
                 homie,
                 guest,
                 outcome: None,
@@ -89,13 +89,13 @@ impl Tournament {
         } else if new_lose.0.len() % 2 == 1 {
             new_lose.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
-            let l_match = Match {
+            let l_duel = Duel {
                 homie,
                 guest,
                 outcome: None,
-            }; // create a match
-            println!("\nspecial loser match: {l_match}");
-            let (winner, loser) = l_match.play(); // play it
+            }; // create a duel
+            println!("\nspecial loser duel: {l_duel}");
+            let (winner, loser) = l_duel.play(); // play it
             new_lose.0.push(winner); // winner stays
             println!("bye-bye {loser}"); // loser get's eleminated
             knocked.0.push(loser);
@@ -150,13 +150,13 @@ impl From<Players> for Tournament {
         if new_win.0.len() % 2 == 1 {
             new_win.shuffle_as_pairs(); // shuffle
             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
-            let w_match = Match {
+            let w_duel = Duel {
                 homie,
                 guest,
                 outcome: None,
-            }; // create a match
-            println!("\nspecial winner match: {w_match}");
-            let (winner, loser) = w_match.play(); // play it
+            }; // create a duel
+            println!("\nspecial winner duel: {w_duel}");
+            let (winner, loser) = w_duel.play(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
