@@ -181,3 +181,25 @@ impl Match {
         (self.winner(), self.loser())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn match_from_players_tuple() {
+        let homie = Player::new("Prisca Virtus", Class::new([0, 0], 'D'));
+        let guest = Player::new("Prius Quam", Class::new([1, 2], 'B'));
+        let duel = Match {
+            homie: homie.clone(),
+            guest: guest.clone(),
+            outcome: None,
+        };
+        assert_eq!(duel, (homie, guest).into());
+    }
+    #[test]
+    fn class_from() {
+        let exp = Class::new([0, 0], 'A');
+        assert_eq!(Ok(exp), "00A".try_into());
+    }
+}
