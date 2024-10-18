@@ -14,13 +14,13 @@ fn main() -> std::io::Result<()> {
     let mut tournament = Tournament::from_path(args.file)?;
     let mut i = 0;
     while !tournament.is_end() {
-        println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch matches:\n");
-        for w_match in &tournament.winner_branch {
-            println!("    {w_match}");
+        println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch duels:\n");
+        for w_duel in &tournament.winner_branch {
+            println!("    {w_duel}");
         }
-        println!("\n-----------------------------\n\nLosing branch matches:\n");
-        for l_match in &tournament.loser_branch {
-            println!("    {l_match}");
+        println!("\n-----------------------------\n\nLosing branch duels:\n");
+        for l_duel in &tournament.loser_branch {
+            println!("    {l_duel}");
         }
         println!("\n-----------------------------\n\n");
         tournament.play_next_round();

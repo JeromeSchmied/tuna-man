@@ -95,15 +95,15 @@ impl Players {
     }
 }
 
-impl From<Players> for Vec<Match> {
+impl From<Players> for Vec<Duel> {
     fn from(players: Players) -> Self {
         if players.0.len() == 1 {
-            let halfset_match = Match {
+            let halfset_duel = Duel {
                 homie: players.0[0].clone(),
                 guest: Player::default(),
                 outcome: None,
             };
-            return vec![halfset_match];
+            return vec![halfset_duel];
         }
         players
             .transform()
