@@ -1,10 +1,7 @@
 use std::path::PathBuf;
 
-use clap::Parser;
-
-#[derive(Parser)]
+#[derive(clap::Parser, Clone, Debug, PartialEq, Eq)]
 pub struct Args {
-    /// .csv file to read data from, using 'player, grade' syntax
-    #[arg(short, long)]
+    /// .csv file to read data from, using '<player/team>,<class>' syntax, where <class> is optional
     pub file: PathBuf,
 }
