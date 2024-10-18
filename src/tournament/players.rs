@@ -112,3 +112,101 @@ impl From<Players> for Vec<Match> {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn load_players() -> Players {
+        Players::load("data.csv").unwrap()
+    }
+
+    #[test]
+    #[should_panic]
+    fn antiload() {
+        Players::load("Low for the sake of environment.bacilus").unwrap();
+    }
+
+    #[test]
+    fn load() {
+        assert_eq!(
+            Players(vec![
+                Player::new("Central Mite", Class::new([1, 0], 'D')),
+                Player::new("Relative Wrasse", Class::new([1, 0], 'C')),
+                Player::new("Exotic Skunk", Class::new([0, 0], 'A')),
+                Player::new("Droll Jaguar", Class::new([1, 2], 'C')),
+                Player::new("Usable Bengal", Class::new([0, 9], 'C')),
+                Player::new("Inviting Pheasant", Class::new([1, 2], 'B')),
+                Player::new("Profound Ponytail", Class::new([0, 0], 'B')),
+                Player::new("Expectant Wolfhound", Class::new([0, 9], 'D')),
+                Player::new("Casual Ptarmigan", Class::new([1, 1], 'B'))
+            ]),
+            load_players()
+        );
+    }
+
+    fn get_dl(ps: &mut Players, idx: usize) -> Option<usize> {
+        let p = ps.0.remove(idx);
+        let res = Players::diff_list(&ps.0, &p);
+        ps.0.insert(idx, p);
+        res
+    }
+    #[test]
+    fn basic_diff_list() {
+        let mut players = load_players();
+        let result = (0..players.0.len())
+            .map(|i| get_dl(&mut players, i).unwrap())
+            .collect::<Vec<_>>();
+        let expected = vec![1, 1, 0, 0, 0, 0, 0, 1, 0];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn more_diff_list() {
+        let mut players = load_players();
+
+        let mut shrex = || -> (Player, Player) {
+            let homie = players.0.remove(0);
+            let Some(guest_idx) = Players::diff_list(&players.0, &homie) else {
+                return (homie, Player::default());
+            };
+            (homie, players.0.remove(guest_idx))
+        };
+
+        assert_eq!(
+            shrex(),
+            (
+                Player::new("Central Mite", Class::new([1, 0], 'D')),
+                Player::new("Exotic Skunk", Class::new([0, 0], 'A'))
+            )
+        );
+        assert_eq!(
+            shrex(),
+            (
+                Player::new("Relative Wrasse", Class::new([1, 0], 'C')),
+                Player::new("Inviting Pheasant", Class::new([1, 2], 'B')),
+            )
+        );
+        assert_eq!(
+            shrex(),
+            (
+                Player::new("Droll Jaguar", Class::new([1, 2], 'C')),
+                Player::new("Profound Ponytail", Class::new([0, 0], 'B')),
+            )
+        );
+        assert_eq!(
+            shrex(),
+            (
+                Player::new("Usable Bengal", Class::new([0, 9], 'C')),
+                Player::new("Casual Ptarmigan", Class::new([1, 1], 'B'))
+            )
+        );
+        assert_eq!(
+            shrex(),
+            (
+                Player::new("Expectant Wolfhound", Class::new([0, 9], 'D')),
+                Player::default()
+            )
+        );
+    }
+}

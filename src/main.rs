@@ -54,4 +54,3 @@ fn does_it_contain() {
     let haystack = ["One Two", "Three Four", "Plum Pear"];
     assert!(haystack.iter().any(|s| s.contains(hay))); // NOTE: wow! it does.
 }
-// TODO: actual tests

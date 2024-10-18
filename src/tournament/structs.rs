@@ -9,6 +9,12 @@ pub(crate) struct Player {
     pub(crate) class: Option<Class>,
 }
 impl Player {
+    pub fn new(name: impl AsRef<str>, class: Class) -> Self {
+        Self {
+            name: name.as_ref().into(),
+            class: Some(class),
+        }
+    }
     pub fn is_unset(&self) -> bool {
         self == &Self::default()
     }
@@ -45,6 +51,12 @@ impl std::fmt::Display for Player {
 pub(crate) struct Class {
     pub(crate) grade: [u8; 2],
     pub(crate) id: char,
+}
+
+impl Class {
+    pub fn new(grade: [u8; 2], id: char) -> Self {
+        Self { grade, id }
+    }
 }
 
 impl TryFrom<&str> for Class {
@@ -167,5 +179,27 @@ impl Match {
             println!("invalid input");
         }
         (self.winner(), self.loser())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn match_from_players_tuple() {
+        let homie = Player::new("Prisca Virtus", Class::new([0, 0], 'D'));
+        let guest = Player::new("Prius Quam", Class::new([1, 2], 'B'));
+        let duel = Match {
+            homie: homie.clone(),
+            guest: guest.clone(),
+            outcome: None,
+        };
+        assert_eq!(duel, (homie, guest).into());
+    }
+    #[test]
+    fn class_from() {
+        let exp = Class::new([0, 0], 'A');
+        assert_eq!(Ok(exp), "00A".try_into());
     }
 }
