@@ -28,7 +28,7 @@ impl std::fmt::Display for Player {
         let class = if let Some(class) = self.class {
             format!(
                 ", {}",
-                if class.grade == [0; 2] {
+                if class.grade == 0 {
                     format!("9Ny{}", class.id)
                 } else {
                     class.into()
@@ -49,12 +49,12 @@ impl std::fmt::Display for Player {
 /// two u8s: grade: 00, 09, 10, 11, 12
 /// char: id: A,B,C,D for now
 pub(crate) struct Class {
-    pub(crate) grade: [u8; 2],
+    pub(crate) grade: u8,
     pub(crate) id: char,
 }
 
 impl Class {
-    pub fn new(grade: [u8; 2], id: char) -> Self {
+    pub fn new(grade: u8, id: char) -> Self {
         Self { grade, id }
     }
 }
@@ -67,20 +67,17 @@ impl TryFrom<&str> for Class {
         let Some(id) = x.next_back() else {
             return Err("invalid class id");
         };
-        let Some(Some(a)) = x.next().map(|a| a.to_digit(10)) else {
-            return Err("invalid class grade");
+        let numbers = x.filter(|x| x.is_ascii_digit()).collect::<String>();
+        let Ok(grade) = numbers.parse::<u8>() else {
+            return Err("invalid grade number");
         };
-        let Some(Some(b)) = x.next().map(|b| b.to_digit(10)) else {
-            return Err("invalid class grade");
-        };
-        let grade = [a as u8, b as u8];
         Ok(Self { grade, id })
     }
 }
 
 impl From<Class> for String {
     fn from(value: Class) -> Self {
-        format!("{}{}{}", value.grade[0], value.grade[1], value.id)
+        format!("{}{}", value.grade, value.id)
     }
 }
 
@@ -189,8 +186,8 @@ mod tests {
 
     #[test]
     fn duel_from_players_tuple() {
-        let homie = Player::new("Prisca Virtus", Class::new([0, 0], 'D'));
-        let guest = Player::new("Prius Quam", Class::new([1, 2], 'B'));
+        let homie = Player::new("Prisca Virtus", Class::new(0, 'D'));
+        let guest = Player::new("Prius Quam", Class::new(12, 'B'));
         let duel = Duel {
             homie: homie.clone(),
             guest: guest.clone(),
@@ -200,7 +197,7 @@ mod tests {
     }
     #[test]
     fn class_from() {
-        let exp = Class::new([0, 0], 'A');
+        let exp = Class::new(0, 'A');
         assert_eq!(Ok(exp), "00A".try_into());
     }
 }
