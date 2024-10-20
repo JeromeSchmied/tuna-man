@@ -1,17 +1,24 @@
-  Example:
 # 🏓 Tournament Manager
 
-**pingpong** is a Rust-powered CLI application that creates double-elimination tournaments, initially built for table tennis. Whether you're organizing a casual game night or a competitive event, it helps you manage tournament brackets with ease. 
+> NOTE: WIP
 
-Future plans include expanding to other types of tournaments and integrating a TUI using RATAUI for an even smoother experience.
+**Tuna Man** is a Rust-powered CLI/TUI application that creates double-elimination tournaments, initially built for table tennis.
+Whether you're organizing a casual game night or a competitive event, it helps you manage tournaments with ease. 
 
 ## Features
 
-- 🏆 **Double-Elimination Format**: Automatically creates brackets for double-elimination tournaments.
 - 💾 **CSV-Based Input**: Easily import players or teams from a `.csv` file.
-- 🔓 **Flexibility**: Designed for table tennis tournaments, but it can be used for any 1v1 match based sports and games.
-- 🖥️  **TUI in Development**: Integration with RATAUI for a sleek terminal user interface is in the works.
-- 🔄 **Planned Expansions**: Upcoming support for multiple tournament formats and different types of games.
+- 🔓 **Flexibility**: Designed for table tennis tournaments in our school, but it can be used for any tournament.
+- 🏆 **Double-Elimination Format**: Automatically creates brackets for double-elimination tournaments.
+
+> **_TODO_**
+> - [ ] 🖥️ **TUI interface**: Integration with [ratatui](https://ratatui.rs) for a sleek terminal user interface is in the works.
+> - 🔄 **More Tournament formats**: Upcoming support for multiple tournament formats eg.:
+>   - [ ] single-elimination
+>   - [ ] Round-robin
+>   - [ ] Swiss-system
+>   - [ ] any with seeding
+> - [ ] library?
 
 ## Getting Started
 
@@ -25,8 +32,8 @@ Future plans include expanding to other types of tournaments and integrating a T
 Clone the repository:
 
 ```bash
-git clone https://codeberg.org/jark/pingpong.git
-cd pingpong
+git clone https://codeberg.org/jark/tuna-man.git
+cd tuna-man
 ```
 
 Build the project:
@@ -35,27 +42,36 @@ Build the project:
 cargo build --release
 ```
 
+All-in-one easy mode:  
+```bash
+cargo install --locked --git "https://codeberg.org/jark/tuna-man"
+```
+
 ### Usage
 
 To create a tournament, simply run the following command, providing the path to your `.csv` file:
 
 ```bash
-./pingpong <FILE>
+tuna-man <FILE>
 ```
 
-- example input file
-  ```
+- example input file with class
+  ```csv
+  name,class
   Alice,11A
-  Bob,09B
+  Bob,9B
+  Jennice,0C
+  ...
+  ```
+- example input file without class
+  ```csv
+  name
+  Alice
+  Bob
+  Jennice
   ...
   ```
 
 ### Options:
 
 - `-h`, `--help`: Display help message with usage details.
-
-## Roadmap
-
-- **TUI Interface**: Interactive terminal UI using RATAUI (in progress).
-- **More Tournament Types**: Round-robin, single-elimination, Swiss-system formats, etc.
-- **More Game Types**: Expand support to other sports and games
