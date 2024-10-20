@@ -1,4 +1,4 @@
-# 🏓 Tournament Manager
+# 🏓 Tuna Man: tournament manager
 
 > NOTE: WIP
 
