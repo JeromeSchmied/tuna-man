@@ -27,7 +27,7 @@ impl Tournament {
     pub(crate) fn is_end(&self) -> bool {
         self.winner_branch.is_empty() && self.loser_branch.is_empty()
     }
-    pub(crate) fn play_cli(mut self) -> Self {
+    pub(crate) fn play_round_cli(mut self) -> Self {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
         let mut knocked = self.knocked;
@@ -38,7 +38,7 @@ impl Tournament {
                 break;
             }
             println!("\nwinner duel: {w_duel}");
-            let (winner, loser) = w_duel.play();
+            let (winner, loser) = w_duel.play_cli();
             new_win.0.push(winner);
             new_lose.0.push(loser);
         }
@@ -49,7 +49,7 @@ impl Tournament {
                 break;
             }
             println!("\nloser duel: {l_duel}");
-            let (winner, loser) = l_duel.play();
+            let (winner, loser) = l_duel.play_cli();
             new_lose.0.push(winner);
             println!("bye-bye {loser}");
             knocked.0.push(loser);
@@ -69,7 +69,7 @@ impl Tournament {
                 outcome: None,
             }; // create a duel
             println!("\nspecial winner duel: {w_duel}");
-            let (winner, loser) = w_duel.play(); // play it
+            let (winner, loser) = w_duel.play_cli(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
@@ -83,7 +83,7 @@ impl Tournament {
                 outcome: None,
             };
             println!("FINAL GAME: {finals}");
-            let (winner, second) = finals.play();
+            let (winner, second) = finals.play_cli();
             knocked.0.push(second);
             knocked.0.push(winner);
         } else if new_lose.0.len() % 2 == 1 {
@@ -95,7 +95,7 @@ impl Tournament {
                 outcome: None,
             }; // create a duel
             println!("\nspecial loser duel: {l_duel}");
-            let (winner, loser) = l_duel.play(); // play it
+            let (winner, loser) = l_duel.play_cli(); // play it
             new_lose.0.push(winner); // winner stays
             println!("bye-bye {loser}"); // loser get's eleminated
             knocked.0.push(loser);
@@ -160,7 +160,7 @@ impl From<Players> for Tournament {
                 outcome: None,
             }; // create a duel
             println!("\nspecial winner duel: {w_duel}");
-            let (winner, loser) = w_duel.play(); // play it
+            let (winner, loser) = w_duel.play_cli(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
