@@ -25,19 +25,7 @@ impl std::fmt::Display for Player {
             write!(f, "{{waiting for player...}}")?;
             return Ok(());
         }
-        let class = if let Some(class) = self.class {
-            format!(
-                ", {}",
-                if class.grade == 0 {
-                    format!("9Ny{}", class.id)
-                } else {
-                    class.into()
-                }
-            )
-        } else {
-            "".into()
-        };
-        write!(f, "{}{class}", self.name)
+        write!(f, "{}, {}", self.name, self.class.unwrap())
     }
 }
 
@@ -65,7 +53,7 @@ impl TryFrom<&str> for Class {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let mut x = value.chars();
         let id = x.next_back().ok_or("invalid class id")?;
-        let numbers = x.filter(|x| x.is_ascii_digit()).collect::<String>();
+        let numbers = x.filter(char::is_ascii_digit).collect::<String>();
         let grade = numbers.parse::<u8>().map_err(|_| "invalid grade number")?;
         Ok(Self { grade, id })
     }
