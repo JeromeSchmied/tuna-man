@@ -61,8 +61,8 @@ impl Tournament {
                 new_win.0[0]
             );
         } else if new_win.0.len() % 2 == 1 {
-            new_win.order_as_pairs(); // shuffle
-            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
+            new_win.order_as_pairs(); // make a suitable duel
+            let (homie, guest) = (new_win.0.remove(0), new_win.0.swap_remove(0)); // remove first two
             let w_duel = Duel {
                 homie,
                 guest,
@@ -87,8 +87,8 @@ impl Tournament {
             knocked.0.push(second);
             knocked.0.push(winner);
         } else if new_lose.0.len() % 2 == 1 {
-            new_lose.order_as_pairs(); // shuffle
-            let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
+            new_lose.order_as_pairs(); // make a suitable duel
+            let (homie, guest) = (new_lose.0.remove(0), new_lose.0.swap_remove(0)); // remove first two
             let l_duel = Duel {
                 homie,
                 guest,
