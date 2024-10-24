@@ -27,10 +27,10 @@ impl Tournament {
     pub(crate) fn is_end(&self) -> bool {
         self.winner_branch.is_empty() && self.loser_branch.is_empty()
     }
-    pub(crate) fn play_next_round(&mut self) {
+    pub(crate) fn play_cli(mut self) -> Self {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
-        let mut knocked = std::mem::take(&mut self.knocked);
+        let mut knocked = self.knocked;
         // get outcomes
         while let Some(w_duel) = self.winner_branch.pop() {
             if w_duel.guest.is_unset() {
@@ -102,11 +102,15 @@ impl Tournament {
         }
         // dbg!(&new_win);
         // dbg!(&new_lose);
-        *self = Self {
+        Self {
             winner_branch: new_win.into(),
             loser_branch: new_lose.into(),
             knocked,
-        };
+        }
+    }
+    pub(crate) fn play_next_round(&mut self, play_round: impl FnOnce(Self) -> Self) {
+        let temp_tournament = std::mem::take(self);
+        *self = play_round(temp_tournament);
     }
     // pub fn execute(
     //     &mut self,

@@ -19,7 +19,7 @@ impl Players {
         writer.flush()
     }
     pub(crate) fn shuffle(&mut self) {
-        fastrand::shuffle(&mut self.0)
+        fastrand::shuffle(&mut self.0);
     }
     pub(crate) fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
         if self.0.is_empty() {
