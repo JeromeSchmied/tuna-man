@@ -1,6 +1,6 @@
 use args::Args;
 use clap::Parser;
-use tournament::Tournament;
+use tournament::{backend, Tournament};
 // use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
 mod args;
@@ -11,7 +11,7 @@ fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
     // let tables = vec![Table::default(); 4];
-    let mut tournament = Tournament::from_path(args.file)?;
+    let mut tournament = Tournament::new(backend::Cli).players_from_path(args.file)?;
     let mut i = 0;
     while !tournament.is_end() {
         println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch duels:\n");
@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
             println!("    {l_duel}");
         }
         println!("\n-----------------------------\n\n");
-        tournament.play_next_round(Tournament::play_round_cli);
+        tournament.play_next_round();
         i += 1;
     }
     println!("\nTournament ended in {i} rounds, Results:");

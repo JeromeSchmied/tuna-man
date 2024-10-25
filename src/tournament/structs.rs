@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::io::Write;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
 pub(crate) struct Player {
@@ -120,45 +119,16 @@ impl Duel {
             std::mem::take(&mut self.homie)
         }
     }
-    fn with_outcome(self, outcome: Option<bool>) -> Self {
+    pub fn with_outcome(self, outcome: Option<bool>) -> Self {
         Self { outcome, ..self }
     }
-    fn read_outcome(&self) -> Result<Self, ()> {
-        print!("winner: ");
-        std::io::stdout().flush().map_err(|_| ())?;
-        let mut buf = String::new();
-        std::io::stdin().read_line(&mut buf).map_err(|_| ())?;
-        let outcome = match buf.trim() {
-            "<" | "homie" => Some(true),
-            ">" | "guest" => Some(false),
-            name => {
-                let name = name.to_lowercase();
-                if self.homie.name.to_lowercase().contains(&name) {
-                    Some(true)
-                } else if self.guest.name.to_lowercase().contains(&name) {
-                    Some(false)
-                } else {
-                    // dbg!(&name);
-                    if matches!(name.as_str(), "q" | "quit" | "exit") {
-                        std::process::exit(0);
-                    }
-                    return Err(());
-                }
-            }
-        };
-        // println!("{self}");
-        Ok(self.clone().with_outcome(outcome))
-    }
-    pub(crate) fn play_cli(&self) -> (Player, Player) {
-        self.clone().play(Self::read_outcome)
-    }
+
     pub(crate) fn play(self, read_outcome: impl Fn(&Self) -> Result<Self, ()>) -> (Player, Player) {
         loop {
             if let Ok(mut with_outcome) = read_outcome(&self) {
                 return (with_outcome.winner(), with_outcome.loser());
-            } else {
-                println!("invalid input");
             }
+            println!("invalid input");
         }
     }
 }
