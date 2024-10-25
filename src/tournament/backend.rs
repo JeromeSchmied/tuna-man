@@ -82,8 +82,8 @@ pub trait Backend {
         }
         // dbg!(&new_win);
         // dbg!(&new_lose);
-        tournament.winner_branch = new_win.into();
-        tournament.loser_branch = new_lose.into();
+        tournament.winner_branch = new_win.into_vec_duel(Self::shuffle);
+        tournament.loser_branch = new_lose.into_vec_duel(Self::shuffle);
     }
 }
 

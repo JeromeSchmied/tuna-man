@@ -6,6 +6,8 @@ use structs::Duel;
 pub mod backend;
 mod players;
 mod structs;
+#[cfg(test)]
+pub mod tests;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub(crate) struct Tournament<B: Backend> {
@@ -52,8 +54,8 @@ impl<B: Backend> Tournament<B> {
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
         Self {
-            winner_branch: new_win.into(),
-            loser_branch: new_lose.into(),
+            winner_branch: new_win.into_vec_duel(B::shuffle),
+            loser_branch: new_lose.into_vec_duel(B::shuffle),
             knocked: Players::default(),
             ..self
         }
