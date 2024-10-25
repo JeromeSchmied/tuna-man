@@ -38,11 +38,7 @@ impl Players {
     }
     pub fn into_vec_duel(self, shuffle: impl FnOnce(&mut Self)) -> Vec<Duel> {
         if self.0.len() == 1 {
-            let halfset_duel = Duel {
-                homie: self.0[0].clone(),
-                guest: Player::default(),
-                outcome: None,
-            };
+            let halfset_duel = Duel::new(self.0[0].clone(), Player::default());
             return vec![halfset_duel];
         }
         self.transform(shuffle)

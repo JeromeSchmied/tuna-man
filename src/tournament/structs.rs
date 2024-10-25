@@ -97,14 +97,20 @@ impl std::fmt::Display for Duel {
 }
 impl From<(Player, Player)> for Duel {
     fn from(val: (Player, Player)) -> Self {
-        Self {
-            homie: val.0,
-            guest: val.1,
-            outcome: None,
-        }
+        Self::new(val.0, val.1)
     }
 }
 impl Duel {
+    pub fn new(homie: Player, guest: Player) -> Self {
+        Self {
+            homie,
+            guest,
+            outcome: None,
+        }
+    }
+    pub fn with_outcome(self, outcome: Option<bool>) -> Self {
+        Self { outcome, ..self }
+    }
     fn winner(&mut self) -> Player {
         if self.outcome.is_some_and(|oc| oc) {
             std::mem::take(&mut self.homie)
@@ -119,17 +125,35 @@ impl Duel {
             std::mem::take(&mut self.homie)
         }
     }
-    pub fn with_outcome(self, outcome: Option<bool>) -> Self {
-        Self { outcome, ..self }
-    }
 
-    pub(crate) fn play(self, read_outcome: impl Fn(&Self) -> Result<Self, ()>) -> (Player, Player) {
+    pub(crate) fn play(self, read_outcome: impl Fn(Self) -> Result<Self, ()>) -> (Player, Player) {
         loop {
-            if let Ok(mut with_outcome) = read_outcome(&self) {
+            if let Ok(mut with_outcome) = read_outcome(self.clone()) {
                 return (with_outcome.winner(), with_outcome.loser());
             }
             println!("invalid input");
         }
+    }
+    /// # Info
+    ///
+    /// - creates [`Duel`] from first two [`Player`]s of `branch`
+    /// - plays the duel
+    /// - winner get's pushed back to the `branch`
+    /// - loser get's returned
+    ///
+    /// # Warning
+    ///
+    /// there's a `println!()` hidden in here
+    pub fn handle_special<B: super::backend::Backend>(
+        branch: &mut super::players::Players,
+    ) -> Player {
+        branch.shuffle_as_pairs(B::shuffle); // make a suitable duel
+        let (homie, guest) = (branch.0.remove(0), branch.0.swap_remove(0)); // remove first two
+        let duel = Duel::new(homie, guest); // create a duel
+        println!("{duel}");
+        let (winner, loser) = duel.play(B::get_outcome); // play it
+        branch.0.push(winner); // winner stays
+        loser
     }
 }
 
@@ -141,11 +165,7 @@ mod tests {
     fn duel_from_players_tuple() {
         let homie = Player::new("Prisca Virtus", Class::new(0, 'D'));
         let guest = Player::new("Prius Quam", Class::new(12, 'B'));
-        let duel = Duel {
-            homie: homie.clone(),
-            guest: guest.clone(),
-            outcome: None,
-        };
+        let duel = Duel::new(homie.clone(), guest.clone());
         assert_eq!(duel, (homie, guest).into());
     }
     #[test]

@@ -1,6 +1,5 @@
-use structs::Player;
-
 use super::*;
+use structs::Player;
 
 fn tournament() -> Tournament<backend::Test> {
     let tment = Tournament::new(backend::Test);
