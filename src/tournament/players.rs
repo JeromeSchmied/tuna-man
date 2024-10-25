@@ -18,11 +18,14 @@ impl Players {
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
-    pub(crate) fn shuffle_as_pairs(&mut self) {
+    pub(crate) fn shuffle(&mut self) {
+        fastrand::shuffle(&mut self.0);
+    }
+    pub(crate) fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
         if self.0.is_empty() {
             return;
         }
-        fastrand::shuffle(&mut self.0);
+        shuffle(self);
         let mut as_pairs = Vec::new();
         while self.0.len() > 1 {
             let cnt = self.0.swap_remove(0);
@@ -39,7 +42,7 @@ impl Players {
     fn transform(self) -> Vec<(Player, Player)> {
         let mut players = self;
         assert_eq!(players.0.len() % 2, 0);
-        players.shuffle_as_pairs();
+        players.shuffle_as_pairs(Self::shuffle);
         let mut res = Vec::new();
         while !players.0.is_empty() {
             let cnt = players.0.swap_remove(0);

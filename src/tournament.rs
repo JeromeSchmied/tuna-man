@@ -27,10 +27,10 @@ impl Tournament {
     pub(crate) fn is_end(&self) -> bool {
         self.winner_branch.is_empty() && self.loser_branch.is_empty()
     }
-    pub(crate) fn play_next_round(&mut self) {
+    pub(crate) fn play_round_cli(mut self) -> Self {
         let mut new_win = Players::default();
         let mut new_lose = Players::default();
-        let mut knocked = std::mem::take(&mut self.knocked);
+        let mut knocked = self.knocked;
         // get outcomes
         while let Some(w_duel) = self.winner_branch.pop() {
             if w_duel.guest.is_unset() {
@@ -38,7 +38,7 @@ impl Tournament {
                 break;
             }
             println!("\nwinner duel: {w_duel}");
-            let (winner, loser) = w_duel.play();
+            let (winner, loser) = w_duel.play_cli();
             new_win.0.push(winner);
             new_lose.0.push(loser);
         }
@@ -49,7 +49,7 @@ impl Tournament {
                 break;
             }
             println!("\nloser duel: {l_duel}");
-            let (winner, loser) = l_duel.play();
+            let (winner, loser) = l_duel.play_cli();
             new_lose.0.push(winner);
             println!("bye-bye {loser}");
             knocked.0.push(loser);
@@ -61,15 +61,15 @@ impl Tournament {
                 new_win.0[0]
             );
         } else if new_win.0.len() % 2 == 1 {
-            new_win.shuffle_as_pairs(); // shuffle
-            let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
+            new_win.shuffle_as_pairs(Players::shuffle); // make a suitable duel
+            let (homie, guest) = (new_win.0.remove(0), new_win.0.swap_remove(0)); // remove first two
             let w_duel = Duel {
                 homie,
                 guest,
                 outcome: None,
             }; // create a duel
             println!("\nspecial winner duel: {w_duel}");
-            let (winner, loser) = w_duel.play(); // play it
+            let (winner, loser) = w_duel.play_cli(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
@@ -83,30 +83,34 @@ impl Tournament {
                 outcome: None,
             };
             println!("FINAL GAME: {finals}");
-            let (winner, second) = finals.play();
+            let (winner, second) = finals.play_cli();
             knocked.0.push(second);
             knocked.0.push(winner);
         } else if new_lose.0.len() % 2 == 1 {
-            new_lose.shuffle_as_pairs(); // shuffle
-            let (homie, guest) = (new_lose.0.swap_remove(0), new_lose.0.swap_remove(0)); // remove first two
+            new_lose.shuffle_as_pairs(Players::shuffle); // make a suitable duel
+            let (homie, guest) = (new_lose.0.remove(0), new_lose.0.swap_remove(0)); // remove first two
             let l_duel = Duel {
                 homie,
                 guest,
                 outcome: None,
             }; // create a duel
             println!("\nspecial loser duel: {l_duel}");
-            let (winner, loser) = l_duel.play(); // play it
+            let (winner, loser) = l_duel.play_cli(); // play it
             new_lose.0.push(winner); // winner stays
             println!("bye-bye {loser}"); // loser get's eleminated
             knocked.0.push(loser);
         }
         // dbg!(&new_win);
         // dbg!(&new_lose);
-        *self = Self {
+        Self {
             winner_branch: new_win.into(),
             loser_branch: new_lose.into(),
             knocked,
-        };
+        }
+    }
+    pub(crate) fn play_next_round(&mut self, play_round: impl FnOnce(Self) -> Self) {
+        let temp_tournament = std::mem::take(self);
+        *self = play_round(temp_tournament);
     }
     // pub fn execute(
     //     &mut self,
@@ -148,7 +152,7 @@ impl From<Players> for Tournament {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
-            new_win.shuffle_as_pairs(); // shuffle
+            new_win.shuffle_as_pairs(Players::shuffle); // shuffle
             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
             let w_duel = Duel {
                 homie,
@@ -156,7 +160,7 @@ impl From<Players> for Tournament {
                 outcome: None,
             }; // create a duel
             println!("\nspecial winner duel: {w_duel}");
-            let (winner, loser) = w_duel.play(); // play it
+            let (winner, loser) = w_duel.play_cli(); // play it
             new_win.0.push(winner); // winner stays
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }

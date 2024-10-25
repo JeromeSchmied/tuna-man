@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
             println!("    {l_duel}");
         }
         println!("\n-----------------------------\n\n");
-        tournament.play_next_round();
+        tournament.play_next_round(Tournament::play_round_cli);
         i += 1;
     }
     println!("\nTournament ended in {i} rounds, Results:");

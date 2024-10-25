@@ -120,18 +120,15 @@ impl Duel {
             std::mem::take(&mut self.homie)
         }
     }
-    fn with_outcome(self, outcome: bool) -> Self {
-        Self {
-            outcome: Some(outcome),
-            ..self
-        }
+    fn with_outcome(self, outcome: Option<bool>) -> Self {
+        Self { outcome, ..self }
     }
-    fn read_outcome(&mut self) -> Result<(), ()> {
+    fn read_outcome(&self) -> Result<Self, ()> {
         print!("winner: ");
         std::io::stdout().flush().map_err(|_| ())?;
         let mut buf = String::new();
         std::io::stdin().read_line(&mut buf).map_err(|_| ())?;
-        self.outcome = match buf.trim() {
+        let outcome = match buf.trim() {
             "<" | "homie" => Some(true),
             ">" | "guest" => Some(false),
             name => {
@@ -150,13 +147,19 @@ impl Duel {
             }
         };
         // println!("{self}");
-        Ok(())
+        Ok(self.clone().with_outcome(outcome))
     }
-    pub(crate) fn play(mut self) -> (Player, Player) {
-        while self.read_outcome().is_err() {
-            println!("invalid input");
+    pub(crate) fn play_cli(&self) -> (Player, Player) {
+        self.clone().play(Self::read_outcome)
+    }
+    pub(crate) fn play(self, read_outcome: impl Fn(&Self) -> Result<Self, ()>) -> (Player, Player) {
+        loop {
+            if let Ok(mut with_outcome) = read_outcome(&self) {
+                return (with_outcome.winner(), with_outcome.loser());
+            } else {
+                println!("invalid input");
+            }
         }
-        (self.winner(), self.loser())
     }
 }
 
