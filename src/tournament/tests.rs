@@ -1,3 +1,5 @@
+use structs::Player;
+
 use super::*;
 
 fn tournament() -> Tournament<backend::Test> {
@@ -34,4 +36,104 @@ fn from_path() {
         _backend: backend::Test,
     };
     assert_eq!(exp, tment);
+}
+
+#[test]
+fn tment() {
+    let mut tment = tournament();
+    let nu_p = players::tests::nu_p;
+    let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<backend::Test>| {
+        let tm = Tournament {
+            winner_branch: xp_bs.0.into_vec_duel(backend::Test::shuffle),
+            loser_branch: xp_bs.1.into_vec_duel(backend::Test::shuffle),
+            knocked: xp_bs.2,
+            _backend: backend::Test,
+        };
+        assert_eq!(&tm, tment);
+    };
+
+    let gen_bs = |wb: &[Player], lb: &[Player], kb: &[Player]| -> (Players, Players, Players) {
+        (Players(wb.into()), Players(lb.into()), Players(kb.into()))
+    };
+    // eXPected BrancheS
+    let xp_bs = vec![
+        gen_bs(
+            &[
+                nu_p("Relative Wrasse", 10, 'C'),
+                nu_p("Exotic Skunk", 00, 'A'),
+                nu_p("Profound Ponytail", 00, 'B'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Usable Bengal", 9, 'C'),
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Central Mite", 10, 'D'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+            ],
+            &[nu_p("Casual Ptarmigan", 11, 'B')],
+            &[],
+        ),
+        gen_bs(
+            &[
+                nu_p("Central Mite", 10, 'D'),
+                nu_p("Profound Ponytail", 00, 'B'),
+                nu_p("Relative Wrasse", 10, 'C'),
+                nu_p("Usable Bengal", 9, 'C'),
+            ],
+            &[
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Exotic Skunk", 00, 'A'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+            ],
+            &[nu_p("Casual Ptarmigan", 11, 'B')],
+        ),
+        gen_bs(
+            &[
+                nu_p("Relative Wrasse", 10, 'C'),
+                nu_p("Central Mite", 10, 'D'),
+            ],
+            &[
+                nu_p("Usable Bengal", 9, 'C'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Profound Ponytail", 00, 'B'),
+            ],
+            &[
+                nu_p("Casual Ptarmigan", 11, 'B'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+                nu_p("Exotic Skunk", 00, 'A'),
+            ],
+        ),
+        gen_bs(
+            &[nu_p("Relative Wrasse", 10, 'C')],
+            &[nu_p("Droll Jaguar", 12, 'C'), nu_p("Central Mite", 10, 'D')],
+            &[
+                nu_p("Casual Ptarmigan", 11, 'B'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+                nu_p("Exotic Skunk", 00, 'A'),
+                nu_p("Profound Ponytail", 00, 'B'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Usable Bengal", 9, 'C'),
+            ],
+        ),
+        gen_bs(
+            &[],
+            &[],
+            &[
+                nu_p("Casual Ptarmigan", 11, 'B'),
+                nu_p("Expectant Wolfhound", 9, 'D'),
+                nu_p("Exotic Skunk", 00, 'A'),
+                nu_p("Profound Ponytail", 00, 'B'),
+                nu_p("Inviting Pheasant", 12, 'B'),
+                nu_p("Usable Bengal", 9, 'C'),
+                nu_p("Central Mite", 10, 'D'),
+                nu_p("Droll Jaguar", 12, 'C'),
+                nu_p("Relative Wrasse", 10, 'C'),
+            ],
+        ),
+    ];
+
+    for xp_bs in xp_bs {
+        test_eq(xp_bs, &tment);
+        tment.play_next_round();
+    }
 }
