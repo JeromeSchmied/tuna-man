@@ -3,17 +3,25 @@ use players::Players;
 use std::path::Path;
 use structs::Duel;
 
+/// how we interact with the user
 pub mod backend;
+/// dealing with a bunch of players
 mod players;
+/// building block structs
 mod structs;
 #[cfg(test)]
 pub mod tests;
 
+/// The whole [`Tournament`] with all the [`Players`] and [`Duel`]s
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub(crate) struct Tournament<B: Backend> {
-    pub(crate) winner_branch: Vec<Duel>,
-    pub(crate) loser_branch: Vec<Duel>,
-    pub(crate) knocked: Players,
+pub struct Tournament<B: Backend> {
+    /// [`Duel`]s on the winner branch
+    pub winner_branch: Vec<Duel>,
+    /// [`Duel`]s on the loser branch
+    pub loser_branch: Vec<Duel>,
+    /// [`Players`] who were knocked from the [`Tournament`]
+    pub knocked: Players,
+    /// the [`backend::Backend`] to use
     _backend: B,
 }
 
@@ -32,6 +40,7 @@ impl<B: Backend> Tournament<B> {
             _backend: backend,
         }
     }
+    /// `self` but with `players`
     pub fn with_players(self, players: Players) -> Self {
         assert!(
             players.0.len() >= 3,
@@ -46,21 +55,23 @@ impl<B: Backend> Tournament<B> {
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
         Self {
-            winner_branch: new_win.into_vec_duel(B::shuffle),
-            loser_branch: new_lose.into_vec_duel(B::shuffle),
+            winner_branch: new_win.into_duels(B::shuffle),
+            loser_branch: new_lose.into_duels(B::shuffle),
             knocked: Players::default(),
             ..self
         }
     }
-    pub(crate) fn players_from_path(self, path: impl AsRef<Path>) -> std::io::Result<Self> {
+    /// add players to `self` read from file at `path`
+    pub fn players_from_path(self, path: impl AsRef<Path>) -> std::io::Result<Self> {
         let players = Players::load(path)?;
         Ok(self.with_players(players))
     }
-    pub(crate) fn is_end(&self) -> bool {
+    /// `self` is ended, we've got all the results
+    pub fn is_end(&self) -> bool {
         self.winner_branch.is_empty() && self.loser_branch.is_empty()
     }
-
-    pub(crate) fn play_next_round(&mut self) {
+    /// play the next round
+    pub fn play_next_round(&mut self) {
         B::play_round(self);
     }
     // pub fn execute(
@@ -92,34 +103,3 @@ impl<B: Backend> Tournament<B> {
     //     Ok(())
     // }
 }
-
-// impl<B: Backend> From<Players> for Tournament<B> {
-//     fn from(players: Players) -> Self {
-//         assert!(
-//             players.0.len() >= 3,
-//             "you need at least 3 participants to play a tournament"
-//         );
-
-//         let mut new_win = players;
-//         let mut new_lose = Players::default();
-//         if new_win.0.len() % 2 == 1 {
-//             new_win.shuffle_as_pairs(Players::shuffle); // shuffle
-//             let (homie, guest) = (new_win.0.swap_remove(0), new_win.0.swap_remove(0)); // remove first two
-//             let w_duel = Duel {
-//                 homie,
-//                 guest,
-//                 outcome: None,
-//             }; // create a duel
-//             println!("\nspecial winner duel: {w_duel}");
-//             let (winner, loser) = w_duel.play_cli(); // play it
-//             new_win.0.push(winner); // winner stays
-//             new_lose.0.push(loser); // loser get's pushed to loser branch
-//         }
-//         Self {
-//             winner_branch: new_win.into(),
-//             loser_branch: new_lose.into(),
-//             knocked: Players::default(),
-//             backend: Box::new(CliBackend),
-//         }
-//     }
-// }

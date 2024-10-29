@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
-pub(crate) struct Player {
+/// a player/contestant/participant/team of a [`super::Tournament`]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct Player {
     /// name of the Player
-    pub(crate) name: String,
+    pub name: String,
     /// class of player
-    pub(crate) class: Option<Class>,
+    pub class: Option<Class>,
 }
 impl Player {
     pub fn new(name: impl AsRef<str>, class: Class) -> Self {
@@ -14,6 +15,8 @@ impl Player {
             class: Some(class),
         }
     }
+    /// not yet initialized
+    /// use in this case at your own risk
     pub fn is_unset(&self) -> bool {
         self == &Self::default()
     }
@@ -28,24 +31,22 @@ impl std::fmt::Display for Player {
     }
 }
 
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default,
-)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 #[serde(try_from = "&str")]
 #[serde(into = "String")]
-/// two u8s: grade: 00, 09, 10, 11, 12
-/// char: id: A,B,C,D for now
-pub(crate) struct Class {
-    pub(crate) grade: u8,
-    pub(crate) id: char,
+/// a class that a player attends in a school, institution
+/// format: <grade: number, 0-255><id: any character: Unicode scalar value>
+pub struct Class {
+    /// the number of years spent in the institution, whatever. eg: 10
+    pub grade: u8,
+    /// the id of the class, eg: C
+    pub id: char,
 }
-
 impl Class {
     pub fn new(grade: u8, id: char) -> Self {
         Self { grade, id }
     }
 }
-
 impl TryFrom<&str> for Class {
     type Error = &'static str;
 
@@ -57,13 +58,11 @@ impl TryFrom<&str> for Class {
         Ok(Self { grade, id })
     }
 }
-
 impl From<Class> for String {
     fn from(value: Class) -> Self {
         format!("{}{}", value.grade, value.id)
     }
 }
-
 impl std::fmt::Display for Class {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s: String = (*self).into();
@@ -73,11 +72,11 @@ impl std::fmt::Display for Class {
 
 /// A Duel/Match between two players.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct Duel {
-    pub(crate) homie: Player,
-    pub(crate) guest: Player,
+pub struct Duel {
+    pub homie: Player,
+    pub guest: Player,
     /// homie won: true, opponent won: false
-    pub(crate) outcome: Option<bool>,
+    pub outcome: Option<bool>,
 }
 impl std::fmt::Display for Duel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -95,11 +94,6 @@ impl std::fmt::Display for Duel {
         }
     }
 }
-impl From<(Player, Player)> for Duel {
-    fn from(val: (Player, Player)) -> Self {
-        Self::new(val.0, val.1)
-    }
-}
 impl Duel {
     pub fn new(homie: Player, guest: Player) -> Self {
         Self {
@@ -108,28 +102,48 @@ impl Duel {
             outcome: None,
         }
     }
+    /// `self` but with `outcome`
     pub fn with_outcome(self, outcome: Option<bool>) -> Self {
         Self { outcome, ..self }
     }
-    fn winner(&mut self) -> Player {
-        if self.outcome.is_some_and(|oc| oc) {
+    /// take winner of the game
+    ///
+    /// # Note
+    ///
+    /// it's taken: moved and replaced by [`Player::default()`]
+    ///
+    /// # Panics
+    ///
+    /// if there's no outcome yet
+    fn take_winner(&mut self) -> Player {
+        if self.outcome.unwrap() {
             std::mem::take(&mut self.homie)
         } else {
             std::mem::take(&mut self.guest)
         }
     }
-    fn loser(&mut self) -> Player {
-        if self.outcome.is_some_and(|oc| oc) {
+    /// take loser of the game
+    ///
+    /// # Note
+    ///
+    /// it's taken: moved and replaced by [`Player::default()`]
+    ///
+    /// # Panics
+    ///
+    /// if there's no outcome yet
+    fn take_loser(&mut self) -> Player {
+        if self.outcome.unwrap() {
             std::mem::take(&mut self.guest)
         } else {
             std::mem::take(&mut self.homie)
         }
     }
 
-    pub(crate) fn play(self, read_outcome: impl Fn(Self) -> Result<Self, ()>) -> (Player, Player) {
+    /// play the [`Duel`]: get an outcome with `read_outcome`
+    pub fn play(self, read_outcome: impl Fn(Self) -> Result<Self, ()>) -> (Player, Player) {
         loop {
             if let Ok(mut with_outcome) = read_outcome(self.clone()) {
-                return (with_outcome.winner(), with_outcome.loser());
+                return (with_outcome.take_winner(), with_outcome.take_loser());
             }
             println!("invalid input");
         }
@@ -137,7 +151,7 @@ impl Duel {
     /// # Info
     ///
     /// - creates [`Duel`] from first two [`Player`]s of `branch`
-    /// - plays the duel
+    /// - plays the [`Duel`]
     /// - winner get's pushed back to the `branch`
     /// - loser get's returned
     ///
@@ -161,13 +175,6 @@ impl Duel {
 mod tests {
     use super::*;
 
-    #[test]
-    fn duel_from_players_tuple() {
-        let homie = Player::new("Prisca Virtus", Class::new(0, 'D'));
-        let guest = Player::new("Prius Quam", Class::new(12, 'B'));
-        let duel = Duel::new(homie.clone(), guest.clone());
-        assert_eq!(duel, (homie, guest).into());
-    }
     #[test]
     fn class_from() {
         let exp = Class::new(0, 'A');
