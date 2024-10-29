@@ -2,10 +2,11 @@ use super::structs::*;
 use std::path::Path;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub(crate) struct Players(pub(crate) Vec<Player>);
+pub struct Players(pub Vec<Player>);
 
 impl Players {
-    pub(crate) fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
+    /// load players from file at `path`
+    pub fn load(path: impl AsRef<Path>) -> std::io::Result<Self> {
         let mut reader = csv::Reader::from_path(path)?;
         let players = reader
             .deserialize()
@@ -13,54 +14,67 @@ impl Players {
             .collect();
         Ok(Self(players))
     }
-    pub(crate) fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
+    /// save `self` to file at `path`
+    pub fn save(self, path: impl AsRef<Path>) -> std::io::Result<()> {
         let mut writer = csv::Writer::from_path(path)?;
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
-    pub(crate) fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
+    /// shuffle in a way, that every two following players make up a [`Duel`]
+    pub fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
         if self.0.is_empty() {
+            // don't do anything if empty
             return;
         }
+        // shuffle to make match-making unpredictable
         shuffle(self);
+        // here'll be the players ordered as pairs
         let mut as_pairs = Vec::new();
+        // 2 players always needed to make up a duel
         while self.0.len() > 1 {
+            // current player
             let cnt = self.0.swap_remove(0);
+            // the least similar player
             let idx = Self::diff_list(&self.0, &cnt)
                 .expect("possibly number of players isn't divisible by two");
-            as_pairs.push(cnt);
-            as_pairs.push(self.0.swap_remove(idx));
+            as_pairs.push(cnt); // first the current player
+            as_pairs.push(self.0.swap_remove(idx)); // then the selected one
         }
+        // someone's remained, it's pushed to end
         if self.0.len() == 1 {
             as_pairs.push(self.0.pop().unwrap());
         }
-        self.0 = as_pairs;
+        self.0 = as_pairs; // apply changes
     }
-    pub fn into_vec_duel(self, shuffle: impl FnOnce(&mut Self)) -> Vec<Duel> {
+    /// convert `self` into [`Duel`]s
+    pub fn into_duels(self, shuffle: impl FnOnce(&mut Self)) -> Vec<Duel> {
+        // being the only player, create a fake duel with a ghost player
         if self.0.len() == 1 {
             let halfset_duel = Duel::new(self.0[0].clone(), Player::default());
             return vec![halfset_duel];
         }
-        self.transform(shuffle)
-            .into_iter()
-            .map(std::convert::Into::into)
-            .collect()
-    }
-    fn transform(self, shuffle: impl FnOnce(&mut Self)) -> Vec<(Player, Player)> {
+
+        // moved self into this mutable version
         let mut players = self;
+
+        // only works with even number of players
         assert_eq!(players.0.len() % 2, 0);
+
+        // shuffle, order into pairs
         players.shuffle_as_pairs(shuffle);
+
         let mut res = Vec::new();
         while !players.0.is_empty() {
-            let cnt = players.0.swap_remove(0);
-            let next = players.0.swap_remove(0);
-            res.push((cnt, next));
+            let homie = players.0.swap_remove(0);
+            let guest = players.0.swap_remove(0);
+            res.push(Duel::new(homie, guest));
         }
         res
     }
     /// # Usage
     ///
-    /// returns index
+    /// find player with highest difference from `hay` in `haystack`
+    /// returns index for `haystack`
     ///
     /// # Implementation
     ///
@@ -73,34 +87,34 @@ impl Players {
     /// 3 same grade
     /// 4 nothing in common (based on known things) cool!
     fn diff_list(haystack: &[Player], hay: &Player) -> Option<usize> {
+        // no factor of difference: first one will be just fine
         if hay.class.is_none() {
             return Some(0);
         }
-        // index, value
+        // max (index, value)
         let mut max: (Option<usize>, u8) = (None, 0);
+        // calculate difference for all player
+        // will break soon if highest difference factor is found
         for (i, p) in haystack.iter().enumerate() {
             let diff = if hay.class == p.class {
-                // same class
                 1
             } else if hay.class.unwrap().grade == p.class.unwrap().grade {
-                // same grade
                 2
             } else if hay.class.unwrap().id == p.class.unwrap().id {
-                // same class id
                 3
             } else {
                 4
             };
+            // update max if needed
             if diff > max.1 {
-                max.1 = diff;
-                max.0 = Some(i);
-                // found one that's already highest value, use it
+                max.1 = diff; // value
+                max.0 = Some(i); // index
                 if max.1 == 4 {
+                    // found one that's already highest value, use it
                     break;
                 }
             }
         }
-        // dbg!(max);
         max.0
     }
 }

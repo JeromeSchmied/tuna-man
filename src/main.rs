@@ -1,32 +1,42 @@
 use args::Args;
 use clap::Parser;
 use tournament::{backend, Tournament};
-// use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
 
+/// argument parsing
 mod args;
+/// the tournament itself: logic/backend
 mod tournament;
-mod ui;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
-    // let tables = vec![Table::default(); 4];
+    // new tournament, communicate with the user via the cli
     let mut tournament = Tournament::new(backend::Cli).players_from_path(args.file)?;
-    let mut i = 0;
+
+    // number of rounds
+    let mut round = 0;
+
+    // run till we've got all the results
     while !tournament.is_end() {
-        println!("\n\n\n\nRound {i}.\n--------\n\nWinner branch duels:\n");
+        // winner branch duels this round
+        println!("\n\n\n\nRound {round}.\n--------\n\nWinner branch duels:\n");
         for w_duel in &tournament.winner_branch {
             println!("    {w_duel}");
         }
+        // loser branch duels this round
         println!("\n-----------------------------\n\nLosing branch duels:\n");
         for l_duel in &tournament.loser_branch {
             println!("    {l_duel}");
         }
         println!("\n-----------------------------\n\n");
+
         tournament.play_next_round();
-        i += 1;
+
+        round += 1;
     }
-    println!("\nTournament ended in {i} rounds, Results:");
+
+    // printing results
+    println!("\nTournament ended in {round} rounds, Results:");
     println!("\n\nPODIUM\n------\n");
     println!("Winner: {}", tournament.knocked.0.pop().unwrap());
     println!("Second place: {}", tournament.knocked.0.pop().unwrap());
@@ -40,12 +50,10 @@ fn main() -> std::io::Result<()> {
 
     Ok(())
 
+    // TODO: ratatui ui
     // let mut terminal = ratatui::try_init()?;
-
     // let res = App::default().execute(&mut terminal);
-
     // ratatui::try_restore()?;
-
     // res
 }
 #[test]

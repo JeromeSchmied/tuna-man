@@ -29,8 +29,8 @@ fn from_path() {
     ]);
     let xp_lb = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
     let exp = Tournament {
-        winner_branch: xp_wb.into_vec_duel(backend::Test::shuffle),
-        loser_branch: xp_lb.into_vec_duel(backend::Test::shuffle),
+        winner_branch: xp_wb.into_duels(backend::Test::shuffle),
+        loser_branch: xp_lb.into_duels(backend::Test::shuffle),
         knocked: Players::default(),
         _backend: backend::Test,
     };
@@ -43,8 +43,8 @@ fn tment() {
     let nu_p = players::tests::nu_p;
     let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<backend::Test>| {
         let tm = Tournament {
-            winner_branch: xp_bs.0.into_vec_duel(backend::Test::shuffle),
-            loser_branch: xp_bs.1.into_vec_duel(backend::Test::shuffle),
+            winner_branch: xp_bs.0.into_duels(backend::Test::shuffle),
+            loser_branch: xp_bs.1.into_duels(backend::Test::shuffle),
             knocked: xp_bs.2,
             _backend: backend::Test,
         };
