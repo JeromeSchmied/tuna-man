@@ -6,6 +6,8 @@ use structs::Duel;
 pub mod backend;
 mod players;
 mod structs;
+#[cfg(test)]
+pub mod tests;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub(crate) struct Tournament<B: Backend> {
@@ -39,21 +41,13 @@ impl<B: Backend> Tournament<B> {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
-            new_win.shuffle_as_pairs(B::shuffle); // shuffle
-            let (homie, guest) = (new_win.0.remove(0), new_win.0.swap_remove(0)); // remove first two
-            let w_duel = Duel {
-                homie,
-                guest,
-                outcome: None,
-            }; // create a duel
-            println!("\nspecial winner duel: {w_duel}");
-            let (winner, loser) = w_duel.play(B::get_outcome); // play it
-            new_win.0.push(winner); // winner stays
+            println!("\nspecial winner duel: ");
+            let loser = Duel::handle_special::<B>(&mut new_win);
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
         Self {
-            winner_branch: new_win.into(),
-            loser_branch: new_lose.into(),
+            winner_branch: new_win.into_vec_duel(B::shuffle),
+            loser_branch: new_lose.into_vec_duel(B::shuffle),
             knocked: Players::default(),
             ..self
         }

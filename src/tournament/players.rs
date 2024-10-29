@@ -18,9 +18,6 @@ impl Players {
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
-    pub(crate) fn shuffle(&mut self) {
-        fastrand::shuffle(&mut self.0);
-    }
     pub(crate) fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
         if self.0.is_empty() {
             return;
@@ -39,10 +36,20 @@ impl Players {
         }
         self.0 = as_pairs;
     }
-    fn transform(self) -> Vec<(Player, Player)> {
+    pub fn into_vec_duel(self, shuffle: impl FnOnce(&mut Self)) -> Vec<Duel> {
+        if self.0.len() == 1 {
+            let halfset_duel = Duel::new(self.0[0].clone(), Player::default());
+            return vec![halfset_duel];
+        }
+        self.transform(shuffle)
+            .into_iter()
+            .map(std::convert::Into::into)
+            .collect()
+    }
+    fn transform(self, shuffle: impl FnOnce(&mut Self)) -> Vec<(Player, Player)> {
         let mut players = self;
         assert_eq!(players.0.len() % 2, 0);
-        players.shuffle_as_pairs(Self::shuffle);
+        players.shuffle_as_pairs(shuffle);
         let mut res = Vec::new();
         while !players.0.is_empty() {
             let cnt = players.0.swap_remove(0);
@@ -98,29 +105,11 @@ impl Players {
     }
 }
 
-impl From<Players> for Vec<Duel> {
-    fn from(players: Players) -> Self {
-        if players.0.len() == 1 {
-            let halfset_duel = Duel {
-                homie: players.0[0].clone(),
-                guest: Player::default(),
-                outcome: None,
-            };
-            return vec![halfset_duel];
-        }
-        players
-            .transform()
-            .into_iter()
-            .map(std::convert::Into::into)
-            .collect()
-    }
-}
-
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
 
-    fn load_players() -> Players {
+    pub fn load_players() -> Players {
         Players::load("data.csv").unwrap()
     }
 
@@ -130,8 +119,14 @@ mod tests {
         Players::load("Low for the sake of environment.bacilus").unwrap();
     }
 
-    fn nu_p(name: &str, grade: u8, id: char) -> Player {
+    pub fn nu_p(name: &str, grade: u8, id: char) -> Player {
         Player::new(name, Class::new(grade, id))
+    }
+    fn np(name: &str) -> Player {
+        Player {
+            name: name.into(),
+            class: None,
+        }
     }
 
     #[test]
@@ -209,5 +204,66 @@ mod tests {
             shrex(),
             (nu_p("Expectant Wolfhound", 9, 'D'), Player::default())
         );
+    }
+    #[test]
+    fn basic_shuffle_pairs() {
+        let mut players = load_players();
+        for player in players.0.iter_mut() {
+            player.class = None;
+        }
+        let exp = Players(vec![
+            np("Central Mite"),
+            np("Relative Wrasse"),
+            np("Exotic Skunk"),
+            np("Droll Jaguar"),
+            np("Usable Bengal"),
+            np("Inviting Pheasant"),
+            np("Profound Ponytail"),
+            np("Expectant Wolfhound"),
+            np("Casual Ptarmigan"),
+        ]);
+        assert_eq!(exp, players);
+        players.shuffle_as_pairs(|_| {});
+        let exp = Players(vec![
+            np("Central Mite"),
+            np("Casual Ptarmigan"),
+            np("Expectant Wolfhound"),
+            np("Profound Ponytail"),
+            np("Inviting Pheasant"),
+            np("Usable Bengal"),
+            np("Droll Jaguar"),
+            np("Exotic Skunk"),
+            np("Relative Wrasse"),
+        ]);
+        assert_eq!(exp, players);
+    }
+    #[test]
+    fn more_shuffle_pairs() {
+        let mut players = load_players();
+        let exp = Players(vec![
+            nu_p("Central Mite", 10, 'D'),
+            nu_p("Relative Wrasse", 10, 'C'),
+            nu_p("Exotic Skunk", 00, 'A'),
+            nu_p("Droll Jaguar", 12, 'C'),
+            nu_p("Usable Bengal", 9, 'C'),
+            nu_p("Inviting Pheasant", 12, 'B'),
+            nu_p("Profound Ponytail", 00, 'B'),
+            nu_p("Expectant Wolfhound", 9, 'D'),
+            nu_p("Casual Ptarmigan", 11, 'B'),
+        ]);
+        assert_eq!(exp, players);
+        players.shuffle_as_pairs(|_| {});
+        let exp = Players(vec![
+            nu_p("Central Mite", 10, 'D'),
+            nu_p("Casual Ptarmigan", 11, 'B'),
+            nu_p("Expectant Wolfhound", 9, 'D'),
+            nu_p("Profound Ponytail", 00, 'B'),
+            nu_p("Inviting Pheasant", 12, 'B'),
+            nu_p("Usable Bengal", 9, 'C'),
+            nu_p("Droll Jaguar", 12, 'C'),
+            nu_p("Exotic Skunk", 00, 'A'),
+            nu_p("Relative Wrasse", 10, 'C'),
+        ]);
+        assert_eq!(exp, players);
     }
 }
