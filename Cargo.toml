@@ -3,6 +3,9 @@ name = "tuna-man"
 version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
+description = "No-bullshit, lightweight, Tournament Manager with a cli."
+# documentation = "https://docs.rs/tuna-man"
+repository = "https://codeberg.org/jark/tuna-man"
 
 [dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
