@@ -167,6 +167,11 @@ pub struct SingleElemination {
     branch: Vec<Duel>,
     knocked: Players,
 }
+impl SingleElemination {
+    pub fn new(branch: Vec<Duel>, knocked: Players) -> Self {
+        Self { branch, knocked }
+    }
+}
 impl<B: Backend> Format<B> for SingleElemination {
     fn add_players(&mut self, players: Players) {
         let mut branch = players;
