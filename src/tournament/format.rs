@@ -18,13 +18,19 @@ pub enum Supported {
 //     }
 // }
 
-/// a format in which a Tournament shall be made
+/// a format in which a [`super::Tournament`] shall be made
 pub trait Format<B: Backend> {
-    fn from_players(&mut self, players: Players);
+    /// add `players` to `self`
+    /// shall be used on initialization
+    fn add_players(&mut self, players: Players);
+    /// has the tournament reached to an end?
     fn is_end(&self) -> bool;
+    /// play the next round duels
     fn play_round(&mut self);
+    /// print the actual status
     fn print_status(&self);
-    fn knocked(self) -> Players;
+    /// results in reversed order
+    fn results(self) -> Players;
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
@@ -43,7 +49,7 @@ impl DoubleElemination {
     }
 }
 impl<B: Backend> Format<B> for DoubleElemination {
-    fn from_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players) {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
@@ -151,7 +157,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
         println!("\n-----------------------------\n\n");
     }
 
-    fn knocked(self) -> Players {
+    fn results(self) -> Players {
         self.knocked
     }
 }
@@ -162,7 +168,7 @@ pub struct SingleElemination {
     knocked: Players,
 }
 impl<B: Backend> Format<B> for SingleElemination {
-    fn from_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players) {
         let mut branch = players;
         let mut knocked = Players::default();
         if branch.0.len() % 2 == 1 {
@@ -232,7 +238,7 @@ impl<B: Backend> Format<B> for SingleElemination {
         println!("\n-----------------------------\n\n");
     }
 
-    fn knocked(self) -> Players {
+    fn results(self) -> Players {
         self.knocked
     }
 }

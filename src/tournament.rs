@@ -36,6 +36,8 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     //         ..self
     //     }
     // }
+
+    /// run the whole Tournament
     pub fn run(mut self) {
         // number of rounds
         let mut round = 0;
@@ -50,7 +52,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             round += 1;
         }
 
-        let mut knocked = self.knocked();
+        let mut knocked = self.results();
         // printing results
         println!("\nTournament ended in {round} rounds, Results:");
         println!("\n\nPODIUM\n------\n");
@@ -62,6 +64,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             println!("{}. place: {player}", place + 4);
         }
     }
+    /// print the current status
     pub fn print_status(&self) {
         self.format.print_status();
     }
@@ -71,8 +74,9 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             format,
         }
     }
-    pub fn knocked(self) -> Players {
-        self.format.knocked()
+    /// results in reversed order
+    pub fn results(self) -> Players {
+        self.format.results()
     }
     /// `self` but with `players`
     pub fn with_players(mut self, players: Players) -> Self {
@@ -80,7 +84,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             players.0.len() >= 3,
             "you need at least 3 participants to play a tournament"
         );
-        self.format.from_players(players);
+        self.format.add_players(players);
 
         self
     }
