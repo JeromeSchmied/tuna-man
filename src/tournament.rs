@@ -9,10 +9,10 @@ pub mod backend;
 ///
 /// ## available formats:
 ///
-/// - [x] single-knockout
-/// - [x] double-knockout
-/// - [ ] round-robin
-/// - [ ] swiss-system
+/// - [x] [single-knockout](https://en.wikipedia.org/wiki/Single-elimination_tournament)
+/// - [x] [double-knockout](https://en.wikipedia.org/wiki/Double-elimination_tournament)
+/// - [ ] [round-robin](https://en.wikipedia.org/wiki/Round-robin_tournament)
+/// - [ ] [swiss-system](https://en.wikipedia.org/wiki/Swiss-system_tournament)
 pub mod format;
 /// dealing with a bunch of players
 mod players;

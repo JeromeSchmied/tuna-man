@@ -34,6 +34,7 @@ pub trait Format<B: Backend> {
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
+/// implemented according to wikipedia <https://en.wikipedia.org/wiki/Double-elimination_tournament>
 pub struct DoubleElemination {
     winner_branch: Vec<Duel>,
     loser_branch: Vec<Duel>,
@@ -163,6 +164,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
 }
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
+/// implemented according to wikipedia <https://en.wikipedia.org/wiki/Single-elimination_tournament>
 pub struct SingleElemination {
     branch: Vec<Duel>,
     knocked: Players,
@@ -245,5 +247,65 @@ impl<B: Backend> Format<B> for SingleElemination {
 
     fn results(self) -> Players {
         self.knocked
+    }
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Debug)]
+/// implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament>
+pub struct RoundRobin {}
+impl RoundRobin {
+    //     pub fn new(branch: Vec<Duel>, knocked: Players) -> Self {
+    //         Self { branch, knocked }
+    //     }
+}
+impl<B: Backend> Format<B> for RoundRobin {
+    fn add_players(&mut self, players: Players) {
+        todo!()
+    }
+
+    fn is_end(&self) -> bool {
+        todo!()
+    }
+
+    fn play_round(&mut self) {
+        todo!()
+    }
+
+    fn print_status(&self) {
+        todo!()
+    }
+
+    fn results(self) -> Players {
+        todo!()
+    }
+}
+
+#[derive(Default, PartialEq, Eq, Clone, Debug)]
+/// implemented according to wikipedia <https://en.wikipedia.org/wiki/Swiss-system_tournament>
+pub struct SwissSystem {}
+impl SwissSystem {
+    //     pub fn new(branch: Vec<Duel>, knocked: Players) -> Self {
+    //         Self { branch, knocked }
+    //     }
+}
+impl<B: Backend> Format<B> for SwissSystem {
+    fn add_players(&mut self, players: Players) {
+        todo!()
+    }
+
+    fn is_end(&self) -> bool {
+        todo!()
+    }
+
+    fn play_round(&mut self) {
+        todo!()
+    }
+
+    fn print_status(&self) {
+        todo!()
+    }
+
+    fn results(self) -> Players {
+        todo!()
     }
 }
