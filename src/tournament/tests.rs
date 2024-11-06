@@ -1,13 +1,17 @@
 use super::*;
+use pretty_assertions::assert_eq;
 use structs::Player;
 
-fn tournament() -> Tournament<backend::Test> {
-    let tment = Tournament::new(backend::Test);
+type BT = backend::Test;
+const B: BT = backend::Test;
+
+type DE = format::DoubleElemination;
+
+fn tournament() -> Tournament<BT, DE> {
+    let tment = Tournament::new(B, format::DoubleElemination::default());
     let exp = Tournament {
-        winner_branch: vec![],
-        loser_branch: vec![],
-        knocked: Players::default(),
-        _backend: backend::Test,
+        format: format::DoubleElemination::default(),
+        _backend: B,
     };
     assert_eq!(exp, tment);
     tment.players_from_path("data.csv").unwrap()
@@ -28,11 +32,14 @@ fn from_path() {
         nu_p("Expectant Wolfhound", 9, 'D'),
     ]);
     let xp_lb = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
+    let exp_f = format::DoubleElemination::new(
+        xp_wb.into_duels(BT::shuffle),
+        xp_lb.into_duels(BT::shuffle),
+        Players::default(),
+    );
     let exp = Tournament {
-        winner_branch: xp_wb.into_duels(backend::Test::shuffle),
-        loser_branch: xp_lb.into_duels(backend::Test::shuffle),
-        knocked: Players::default(),
-        _backend: backend::Test,
+        format: exp_f,
+        _backend: B,
     };
     assert_eq!(exp, tment);
 }
@@ -41,12 +48,15 @@ fn from_path() {
 fn tment() {
     let mut tment = tournament();
     let nu_p = players::tests::nu_p;
-    let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<backend::Test>| {
+    let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
+        let exp_f = format::DoubleElemination::new(
+            xp_bs.0.into_duels(BT::shuffle),
+            xp_bs.1.into_duels(BT::shuffle),
+            xp_bs.2,
+        );
         let tm = Tournament {
-            winner_branch: xp_bs.0.into_duels(backend::Test::shuffle),
-            loser_branch: xp_bs.1.into_duels(backend::Test::shuffle),
-            knocked: xp_bs.2,
-            _backend: backend::Test,
+            format: exp_f,
+            _backend: B,
         };
         assert_eq!(&tm, tment);
     };

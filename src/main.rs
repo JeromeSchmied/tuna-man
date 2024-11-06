@@ -1,6 +1,6 @@
 use args::Args;
 use clap::Parser;
-use tournament::{backend, Tournament};
+use tournament::{backend, format, Tournament};
 
 /// argument parsing
 mod args;
@@ -9,42 +9,33 @@ mod tournament;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
+    // let format: Box<dyn format::Format<backend::Cli>> = match args.format {
+    //     format::Supported::SingleElemination => Box::new(format::SingleElemination::default()),
+    //     format::Supported::DoubleElemination => Box::new(format::DoubleElemination::default()),
+    //     format::Supported::RoundRobin => todo!(),
+    //     format::Supported::SwissSystem => todo!(),
+    // };
 
     // new tournament, communicate with the user via the cli
-    let mut tournament = Tournament::new(backend::Cli).players_from_path(args.file)?;
-
-    // number of rounds
-    let mut round = 0;
-
-    // run till we've got all the results
-    while !tournament.is_end() {
-        // winner branch duels this round
-        println!("\n\n\n\nRound {round}.\n--------\n\nWinner branch duels:\n");
-        for w_duel in &tournament.winner_branch {
-            println!("    {w_duel}");
+    match args.format {
+        format::Supported::SingleElemination => {
+            Tournament::new(backend::Cli, format::SingleElemination::default())
+                .players_from_path(args.file)?
+                .run();
         }
-        // loser branch duels this round
-        println!("\n-----------------------------\n\nLosing branch duels:\n");
-        for l_duel in &tournament.loser_branch {
-            println!("    {l_duel}");
+        format::Supported::DoubleElemination => {
+            Tournament::new(backend::Cli, format::DoubleElemination::default())
+                .players_from_path(args.file)?
+                .run();
         }
-        println!("\n-----------------------------\n\n");
-
-        tournament.play_next_round();
-
-        round += 1;
+        format::Supported::RoundRobin => {
+            todo!();
+        }
+        format::Supported::SwissSystem => {
+            todo!();
+        }
     }
-
-    // printing results
-    println!("\nTournament ended in {round} rounds, Results:");
-    println!("\n\nPODIUM\n------\n");
-    println!("Winner: {}", tournament.knocked.0.pop().unwrap());
-    println!("Second place: {}", tournament.knocked.0.pop().unwrap());
-    println!("Third place: {}", tournament.knocked.0.pop().unwrap());
-    println!("\nrunner-ups\n");
-    for (place, player) in tournament.knocked.0.iter().rev().enumerate() {
-        println!("{}. place: {player}", place + 4);
-    }
+    // let mut tournament = Tournament::new(backend::Cli, format).players_from_path(args.file)?;
 
     // players.save();
 
