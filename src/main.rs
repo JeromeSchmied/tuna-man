@@ -29,10 +29,14 @@ fn main() -> std::io::Result<()> {
                 .run();
         }
         format::Supported::RoundRobin => {
-            todo!();
+            Tournament::new(backend::Cli, format::RoundRobin::default())
+                .players_from_path(args.file)?
+                .run();
         }
         format::Supported::SwissSystem => {
-            todo!();
+            Tournament::new(backend::Cli, format::SwissSystem::default())
+                .players_from_path(args.file)?
+                .run();
         }
     }
     // let mut tournament = Tournament::new(backend::Cli, format).players_from_path(args.file)?;
