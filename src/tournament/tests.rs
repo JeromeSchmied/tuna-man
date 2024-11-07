@@ -1,4 +1,5 @@
 use super::*;
+use players::tests::nu_p;
 use structs::Player;
 
 type BT = backend::Test;
@@ -11,9 +12,9 @@ mod double_elemination {
     type DE = format::DoubleElemination;
 
     fn tournament() -> Tournament<BT, DE> {
-        let tment = Tournament::new(B, format::DoubleElemination::default());
+        let tment = Tournament::new(B, DE::default());
         let exp = Tournament {
-            format: format::DoubleElemination::default(),
+            format: DE::default(),
             _backend: B,
         };
         assert_eq!(exp, tment);
@@ -23,7 +24,6 @@ mod double_elemination {
     #[test]
     fn from_path() {
         let tment = tournament();
-        let nu_p = players::tests::nu_p;
         let xp_wb = Players(vec![
             nu_p("Relative Wrasse", 10, 'C'),
             nu_p("Exotic Skunk", 00, 'A'),
@@ -35,7 +35,7 @@ mod double_elemination {
             nu_p("Expectant Wolfhound", 9, 'D'),
         ]);
         let xp_lb = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
-        let exp_f = format::DoubleElemination::new(
+        let exp_f = DE::new(
             xp_wb.into_duels(BT::shuffle),
             xp_lb.into_duels(BT::shuffle),
             Players::default(),
@@ -50,9 +50,8 @@ mod double_elemination {
     #[test]
     fn tment() {
         let mut tment = tournament();
-        let nu_p = players::tests::nu_p;
         let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
-            let exp_f = format::DoubleElemination::new(
+            let exp_f = DE::new(
                 xp_bs.0.into_duels(BT::shuffle),
                 xp_bs.1.into_duels(BT::shuffle),
                 xp_bs.2,
@@ -158,9 +157,9 @@ mod single_elemination {
     type SE = format::SingleElemination;
 
     fn tournament() -> Tournament<BT, SE> {
-        let tment = Tournament::new(B, format::SingleElemination::default());
+        let tment = Tournament::new(B, SE::default());
         let exp = Tournament {
-            format: format::SingleElemination::default(),
+            format: SE::default(),
             _backend: B,
         };
         assert_eq!(exp, tment);
@@ -170,7 +169,6 @@ mod single_elemination {
     #[test]
     fn from_path() {
         let tment = tournament();
-        let nu_p = players::tests::nu_p;
         let xp_b = Players(vec![
             nu_p("Relative Wrasse", 10, 'C'),
             nu_p("Exotic Skunk", 00, 'A'),
@@ -182,7 +180,7 @@ mod single_elemination {
             nu_p("Expectant Wolfhound", 9, 'D'),
         ]);
         let xp_k = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
-        let exp_f = format::SingleElemination::new(xp_b.into_duels(BT::shuffle), xp_k);
+        let exp_f = SE::new(xp_b.into_duels(BT::shuffle), xp_k);
         let exp = Tournament {
             format: exp_f,
             _backend: B,
@@ -193,9 +191,8 @@ mod single_elemination {
     #[test]
     fn tment() {
         let mut tment = tournament();
-        let nu_p = players::tests::nu_p;
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
-            let exp_f = format::SingleElemination::new(xp_bs.0.into_duels(BT::shuffle), xp_bs.1);
+            let exp_f = SE::new(xp_bs.0.into_duels(BT::shuffle), xp_bs.1);
             let exp_tm = Tournament {
                 format: exp_f,
                 _backend: B,
@@ -269,6 +266,160 @@ mod single_elemination {
 
         for xp_bs in xp_bs {
             test_eq(xp_bs, &tment);
+            tment.play_next_round();
+        }
+    }
+}
+
+mod round_robin {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    use std::collections::HashMap;
+    use structs::Duel;
+
+    type RR = format::RoundRobin;
+
+    fn tournament() -> Tournament<BT, RR> {
+        let tment = Tournament::new(B, RR::default());
+        let exp = Tournament {
+            format: RR::default(),
+            _backend: B,
+        };
+        assert_eq!(exp, tment);
+        tment.players_from_path("data.csv").unwrap()
+    }
+
+    #[test]
+    fn from_path() {
+        let tment = tournament();
+        let players = Players(vec![
+            nu_p("Central Mite", 10, 'D'),
+            nu_p("Relative Wrasse", 10, 'C'),
+            nu_p("Exotic Skunk", 00, 'A'),
+            nu_p("Droll Jaguar", 12, 'C'),
+            nu_p("Usable Bengal", 9, 'C'),
+            nu_p("Inviting Pheasant", 12, 'B'),
+            nu_p("Profound Ponytail", 00, 'B'),
+            nu_p("Expectant Wolfhound", 9, 'D'),
+            nu_p("Casual Ptarmigan", 11, 'B'),
+            Player::default(),
+        ]);
+        let duel =
+            |i: usize, j: usize| -> Duel { Duel::new(players.0[i].clone(), players.0[j].clone()) };
+        let duels = vec![duel(0, 9), duel(1, 8), duel(2, 7), duel(3, 6), duel(4, 5)];
+        let points = players.0.iter().cloned().map(|p| (p, 0)).collect();
+
+        let exp_f = RR::new(duels, players, points, 0);
+
+        let exp = Tournament {
+            format: exp_f,
+            _backend: B,
+        };
+        assert_eq!(exp, tment);
+    }
+
+    #[test]
+    fn tment() {
+        let mut tment = tournament();
+
+        let players = Players(vec![
+            nu_p("Central Mite", 10, 'D'),
+            nu_p("Relative Wrasse", 10, 'C'),
+            nu_p("Exotic Skunk", 00, 'A'),
+            nu_p("Droll Jaguar", 12, 'C'),
+            nu_p("Usable Bengal", 9, 'C'),
+            nu_p("Inviting Pheasant", 12, 'B'),
+            nu_p("Profound Ponytail", 00, 'B'),
+            nu_p("Expectant Wolfhound", 9, 'D'),
+            nu_p("Casual Ptarmigan", 11, 'B'),
+            Player::default(),
+        ]);
+
+        let player = |i: usize| players.0[i].clone();
+        let duel = |i: usize, j: usize| Duel::new(player(i), player(j));
+
+        let test_eq = |xp: (Vec<Duel>, HashMap<Player, u8>, usize), tment: &Tournament<BT, RR>| {
+            let exp_f = RR::new(xp.0, players.clone(), xp.1.clone(), xp.2);
+
+            let xp_tm = Tournament {
+                format: exp_f,
+                _backend: B,
+            };
+
+            assert_eq!(&xp_tm, tment);
+        };
+
+        let gen_xp = |duels: &[Duel],
+                      points: HashMap<Player, u8>,
+                      round: usize|
+         -> (Vec<Duel>, HashMap<Player, u8>, usize) {
+            (duels.into(), points, round)
+        };
+        let points = |points: &[u8]| -> HashMap<Player, u8> {
+            points
+                .iter()
+                .enumerate()
+                .map(|(i, p)| (player(i), *p))
+                .collect()
+        };
+        // eXPected thingS
+        let xps = vec![
+            gen_xp(
+                &[duel(0, 9), duel(1, 8), duel(2, 7), duel(3, 6), duel(4, 5)],
+                points(&[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+                0,
+            ),
+            gen_xp(
+                &[duel(0, 9), duel(1, 8), duel(2, 7), duel(3, 6), duel(4, 5)],
+                points(&[0, 1, 1, 1, 1, 0, 0, 0, 0, 0]),
+                1,
+            ),
+            gen_xp(
+                &[duel(0, 8), duel(9, 7), duel(1, 6), duel(2, 5), duel(3, 4)],
+                points(&[0, 2, 2, 2, 2, 0, 0, 0, 0, 0]),
+                2,
+            ),
+            gen_xp(
+                &[duel(0, 7), duel(8, 6), duel(9, 5), duel(1, 4), duel(2, 3)],
+                points(&[1, 3, 3, 3, 2, 0, 0, 0, 0, 0]),
+                3,
+            ),
+            gen_xp(
+                &[duel(0, 6), duel(7, 5), duel(8, 4), duel(9, 3), duel(1, 2)],
+                points(&[2, 4, 4, 3, 2, 0, 0, 0, 1, 0]),
+                4,
+            ),
+            gen_xp(
+                &[duel(0, 5), duel(6, 4), duel(7, 3), duel(8, 2), duel(9, 1)],
+                points(&[3, 5, 4, 3, 2, 0, 0, 1, 2, 0]),
+                5,
+            ),
+            gen_xp(
+                &[duel(0, 4), duel(5, 3), duel(6, 2), duel(7, 1), duel(8, 9)],
+                points(&[4, 5, 4, 3, 2, 0, 1, 2, 3, 0]),
+                6,
+            ),
+            gen_xp(
+                &[duel(0, 3), duel(4, 2), duel(5, 1), duel(6, 9), duel(7, 8)],
+                points(&[5, 5, 4, 3, 2, 1, 2, 3, 3, 0]),
+                7,
+            ),
+            gen_xp(
+                &[duel(0, 2), duel(3, 1), duel(4, 9), duel(5, 8), duel(6, 7)],
+                points(&[6, 5, 4, 3, 3, 2, 2, 4, 3, 0]),
+                8,
+            ),
+            gen_xp(
+                &[duel(0, 1), duel(2, 9), duel(3, 8), duel(4, 7), duel(5, 6)],
+                points(&[7, 5, 4, 4, 3, 3, 3, 4, 3, 0]),
+                9,
+            ),
+        ];
+        let mut xps = xps.into_iter();
+
+        while !tment.is_end() {
+            let xp = xps.next().unwrap();
+            test_eq(xp, &tment);
             tment.play_next_round();
         }
     }
