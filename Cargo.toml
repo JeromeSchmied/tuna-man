@@ -8,7 +8,7 @@ description = "No-bullshit, lightweight, Tournament Manager with a cli."
 repository = "https://codeberg.org/jark/tuna-man"
 
 [dependencies]
-clap = { version = "4.5.20", features = ["derive"] }
+clap = { version = "4.5.21", features = ["derive"] }
 csv = "1.3.0"
 fastrand = "2.1.1"
 serde = { version = "1.0.210", default-features = false, features = ["derive"] }
