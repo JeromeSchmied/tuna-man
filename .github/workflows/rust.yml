@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "dev" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "dev" ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,34 +15,27 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-14
+          - os: macos-latest
             target: aarch64-apple-darwin
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: x86_64-pc-windows-msvc
 
+
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+    - uses: swatinem/rust-cache@v2
 
-      - name: Cache dependencies
-        uses: swatinem/rust-cache@v2
+    - name: Build in release mode
+      run: cargo build --release --target ${{ matrix.target }} --verbose
 
-      - name: Build
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: --release --target ${{ matrix.target }} --verbose
-          command: build
+    - name: Run tests
+      run: cargo test --target ${{ matrix.target }} --verbose
 
-      - name: Run tests
-        uses: ClementTsang/cargo-action@v0.0.6
-        with:
-          args: --target ${{ matrix.target }} --verbose
-          command: test
-
-      - name: Upload executable
-        uses: actions/upload-artifact@v4
-        with:
-          name: tuna-man-${{ matrix.os }}
-          path: target/${{ matrix.target }}/release/tuna-man*
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: tuna-man_${{ matrix.os }}
+        path: target/${{ matrix.target }}/release/tuna-man*
