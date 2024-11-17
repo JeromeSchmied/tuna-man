@@ -2,20 +2,21 @@
 
 > NOTE: WIP
 
-**Tuna Man** is a Rust-powered CLI/TUI application that creates double-elimination tournaments, initially built for table tennis.
+**Tuna Man** is a Rust-powered CLI/TUI application that creates tournaments and manages, initially built for table tennis.
 Whether you're organizing a casual game night or a competitive event, it helps you manage tournaments with ease. 
 
 ## Features
 
 - 💾 **CSV-Based Input**: Easily import players or teams from a `.csv` file.
 - 🔓 **Flexibility**: Designed for table tennis tournaments in our school, but it can be used for any tournament.
-- 🏆 **Double-Elimination Format**: Automatically creates brackets for double-elimination tournaments.
+- 🏆 **Multiple Formats**: Can automatically create brackets for multiple tournament formats.
 
 > **_TODO_**
 > - [ ] 🖥️ **TUI interface**: Integration with [ratatui](https://ratatui.rs) for a sleek terminal user interface is in the works.
 > - 🔄 **More Tournament formats**: Upcoming support for multiple tournament formats eg.:
->   - [ ] single-elimination
->   - [ ] Round-robin
+>   - [x] double-elemination
+>   - [x] single-elimination
+>   - [x] Round-robin
 >   - [ ] Swiss-system
 >   - [ ] any with seeding
 > - [ ] library?
@@ -72,6 +73,6 @@ tuna-man <FILE>
   ...
   ```
 
-### Options:
+### Notable Options:
 
 - `-h`, `--help`: Display help message with usage details.

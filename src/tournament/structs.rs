@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// a player/contestant/participant/team of a [`super::Tournament`]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default, Hash)]
 pub struct Player {
     /// name of the Player
     pub name: String,
@@ -27,11 +27,22 @@ impl std::fmt::Display for Player {
             write!(f, "{{waiting for player...}}")?;
             return Ok(());
         }
-        write!(f, "{}, {}", self.name, self.class.unwrap())
+        write!(
+            f,
+            "{}{}",
+            self.name,
+            if let Some(class) = self.class {
+                [", ", &class.to_string()].concat()
+            } else {
+                "".into()
+            }
+        )
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default, Hash,
+)]
 #[serde(try_from = "&str")]
 #[serde(into = "String")]
 /// a class that a player attends in a school, institution

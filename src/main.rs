@@ -17,24 +17,25 @@ fn main() -> std::io::Result<()> {
     // };
 
     // new tournament, communicate with the user via the cli
+    let backend = backend::Cli;
     match args.format {
         format::Supported::SingleElemination => {
-            Tournament::new(backend::Cli, format::SingleElemination::default())
+            Tournament::new(backend, format::SingleElemination::default())
                 .players_from_path(args.file)?
                 .run();
         }
         format::Supported::DoubleElemination => {
-            Tournament::new(backend::Cli, format::DoubleElemination::default())
+            Tournament::new(backend, format::DoubleElemination::default())
                 .players_from_path(args.file)?
                 .run();
         }
         format::Supported::RoundRobin => {
-            Tournament::new(backend::Cli, format::RoundRobin::default())
+            Tournament::new(backend, format::RoundRobin::default())
                 .players_from_path(args.file)?
                 .run();
         }
         format::Supported::SwissSystem => {
-            Tournament::new(backend::Cli, format::SwissSystem::default())
+            Tournament::new(backend, format::SwissSystem::default())
                 .players_from_path(args.file)?
                 .run();
         }
