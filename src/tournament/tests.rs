@@ -4,6 +4,7 @@ use structs::Player;
 
 type BT = backend::Test;
 const B: BT = backend::Test;
+const NO_SHUFFLE: Option<fn(&mut Players)> = None;
 
 mod double_elemination {
     use super::*;
@@ -163,24 +164,24 @@ mod single_elemination {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv", false).unwrap()
+        tment.players_from_path("data.csv", true).unwrap()
     }
 
     #[test]
     fn from_path() {
         let tment = tournament();
         let xp_b = Players(vec![
-            nu_p("Relative Wrasse", 10, 'C'),
+            nu_p("Casual Ptarmigan", 11, 'B'),
             nu_p("Exotic Skunk", 00, 'A'),
-            nu_p("Profound Ponytail", 00, 'B'),
-            nu_p("Inviting Pheasant", 12, 'B'),
-            nu_p("Usable Bengal", 9, 'C'),
             nu_p("Droll Jaguar", 12, 'C'),
-            nu_p("Central Mite", 10, 'D'),
+            nu_p("Usable Bengal", 9, 'C'),
+            nu_p("Inviting Pheasant", 12, 'B'),
+            nu_p("Profound Ponytail", 00, 'B'),
             nu_p("Expectant Wolfhound", 9, 'D'),
+            nu_p("Central Mite", 10, 'D'),
         ]);
-        let xp_k = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
-        let exp_f = SE::new(xp_b.into_duels(Some(BT::shuffle)), xp_k);
+        let xp_k = Players(vec![nu_p("Relative Wrasse", 10, 'C')]);
+        let exp_f = SE::new(xp_b.into_duels(NO_SHUFFLE), xp_k);
         let exp = Tournament {
             format: exp_f,
             _backend: B,
@@ -192,7 +193,7 @@ mod single_elemination {
     fn tment() {
         let mut tment = tournament();
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
-            let exp_f = SE::new(xp_bs.0.into_duels(Some(BT::shuffle)), xp_bs.1);
+            let exp_f = SE::new(xp_bs.0.into_duels(NO_SHUFFLE), xp_bs.1);
             let exp_tm = Tournament {
                 format: exp_f,
                 _backend: B,
@@ -207,67 +208,68 @@ mod single_elemination {
         let xp_bs = vec![
             gen_bs(
                 &[
-                    nu_p("Relative Wrasse", 10, 'C'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
                     nu_p("Exotic Skunk", 00, 'A'),
-                    nu_p("Profound Ponytail", 00, 'B'),
-                    nu_p("Inviting Pheasant", 12, 'B'),
-                    nu_p("Usable Bengal", 9, 'C'),
                     nu_p("Droll Jaguar", 12, 'C'),
-                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
+                    nu_p("Profound Ponytail", 00, 'B'),
                     nu_p("Expectant Wolfhound", 9, 'D'),
+                    nu_p("Central Mite", 10, 'D'),
                 ],
-                &[nu_p("Casual Ptarmigan", 11, 'B')],
+                &[nu_p("Relative Wrasse", 10, 'C')],
             ),
             gen_bs(
                 &[
-                    nu_p("Central Mite", 10, 'D'),
-                    nu_p("Profound Ponytail", 00, 'B'),
-                    nu_p("Relative Wrasse", 10, 'C'),
-                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
+                    nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Expectant Wolfhound", 9, 'D'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
                 ],
                 &[
-                    nu_p("Casual Ptarmigan", 11, 'B'),
-                    nu_p("Expectant Wolfhound", 9, 'D'),
-                    nu_p("Droll Jaguar", 12, 'C'),
-                    nu_p("Inviting Pheasant", 12, 'B'),
+                    nu_p("Relative Wrasse", 10, 'C'),
+                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Profound Ponytail", 00, 'B'),
+                    nu_p("Usable Bengal", 9, 'C'),
                     nu_p("Exotic Skunk", 00, 'A'),
                 ],
             ),
             gen_bs(
                 &[
-                    nu_p("Relative Wrasse", 10, 'C'),
-                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
                 ],
                 &[
-                    nu_p("Casual Ptarmigan", 11, 'B'),
-                    nu_p("Expectant Wolfhound", 9, 'D'),
-                    nu_p("Droll Jaguar", 12, 'C'),
-                    nu_p("Inviting Pheasant", 12, 'B'),
-                    nu_p("Exotic Skunk", 00, 'A'),
-                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Relative Wrasse", 10, 'C'),
+                    nu_p("Central Mite", 10, 'D'),
                     nu_p("Profound Ponytail", 00, 'B'),
+                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Expectant Wolfhound", 9, 'D'),
                 ],
             ),
             gen_bs(
                 &[],
                 &[
-                    nu_p("Casual Ptarmigan", 11, 'B'),
-                    nu_p("Expectant Wolfhound", 9, 'D'),
-                    nu_p("Droll Jaguar", 12, 'C'),
-                    nu_p("Inviting Pheasant", 12, 'B'),
-                    nu_p("Exotic Skunk", 00, 'A'),
-                    nu_p("Usable Bengal", 9, 'C'),
-                    nu_p("Profound Ponytail", 00, 'B'),
-                    nu_p("Central Mite", 10, 'D'),
                     nu_p("Relative Wrasse", 10, 'C'),
+                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Profound Ponytail", 00, 'B'),
+                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Expectant Wolfhound", 9, 'D'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
                 ],
             ),
         ];
 
         for xp_bs in xp_bs {
             test_eq(xp_bs, &tment);
-            tment.play_next_round(false);
+            tment.play_next_round(true);
         }
+        assert!(tment.is_end());
     }
 }
 
