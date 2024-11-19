@@ -289,12 +289,9 @@ impl RoundRobin {
         duel_idxs.insert(0, 0);
 
         let mut duels = vec![];
-        while !duel_idxs.is_empty() {
+        while let Some(guest) = duel_idxs.pop() {
             // index of the first one
             let homie = duel_idxs.remove(0);
-            // index of the last one
-            // FIXME: while let Some() .. pop()
-            let guest = duel_idxs.pop().unwrap();
             // the actual players themselves
             let (homie, guest) = (
                 self.players.0.get(homie).unwrap().clone(),
