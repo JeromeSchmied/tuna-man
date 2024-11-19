@@ -219,7 +219,7 @@ pub mod tests {
         );
     }
     #[test]
-    fn basic_shuffle_pairs() {
+    fn no_shuffle_pairs() {
         let mut players = load_players();
         for player in players.0.iter_mut() {
             player.class = None;
@@ -237,17 +237,6 @@ pub mod tests {
         ]);
         assert_eq!(exp, players);
         players.shuffle_as_pairs(SHUFFLE);
-        let exp = Players(vec![
-            np("Central Mite"),
-            np("Casual Ptarmigan"),
-            np("Expectant Wolfhound"),
-            np("Profound Ponytail"),
-            np("Inviting Pheasant"),
-            np("Usable Bengal"),
-            np("Droll Jaguar"),
-            np("Exotic Skunk"),
-            np("Relative Wrasse"),
-        ]);
         assert_eq!(exp, players);
     }
     #[test]
