@@ -11,11 +11,11 @@ pub trait Backend {
     /// play a round of a [`Tournament`]
     /// double-knockout for now
     // TODO: support more formats
-    fn play_round<B: Backend, F: Format<B>>(tournament: &mut Tournament<B, F>)
+    fn play_round<B: Backend, F: Format<B>>(tournament: &mut Tournament<B, F>, standard: bool)
     where
         Self: Sized,
     {
-        tournament.format.play_round();
+        tournament.format.play_round(standard);
     }
 }
 

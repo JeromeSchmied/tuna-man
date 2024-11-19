@@ -5,7 +5,7 @@ use super::{
 };
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, PartialEq, Eq, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum Supported {
     SingleElemination,
     DoubleElemination,
@@ -27,11 +27,15 @@ pub enum Supported {
 pub trait Format<B: Backend> {
     /// add `players` to `self`
     /// shall be used on initialization
-    fn add_players(&mut self, players: Players);
+    ///
+    /// if `standard`, then the original order is preserved, otherwise players are shuffled
+    fn add_players(&mut self, players: Players, standard: bool);
     /// has the tournament reached to an end?
     fn is_end(&self) -> bool;
     /// play the next round duels
-    fn play_round(&mut self);
+    ///
+    /// if `standard`, then the original order is preserved, otherwise players are shuffled after every round
+    fn play_round(&mut self, standard: bool);
     /// print the actual status
     fn print_status(&self);
     /// results in reversed order
@@ -55,7 +59,7 @@ impl DoubleElemination {
     }
 }
 impl<B: Backend> Format<B> for DoubleElemination {
-    fn add_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players, standard: bool) {
         let mut new_win = players;
         let mut new_lose = Players::default();
         if new_win.0.len() % 2 == 1 {
@@ -63,9 +67,10 @@ impl<B: Backend> Format<B> for DoubleElemination {
             let loser = Duel::handle_special::<B>(&mut new_win);
             new_lose.0.push(loser); // loser get's pushed to loser branch
         }
+        let shuffle = if standard { None } else { Some(B::shuffle) };
         *self = Self {
-            winner_branch: new_win.into_duels(B::shuffle),
-            loser_branch: new_lose.into_duels(B::shuffle),
+            winner_branch: new_win.into_duels(shuffle),
+            loser_branch: new_lose.into_duels(shuffle),
             knocked: Players::default(),
         };
     }
@@ -74,7 +79,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
         self.winner_branch.is_empty() && self.loser_branch.is_empty()
     }
 
-    fn play_round(&mut self) {
+    fn play_round(&mut self, standard: bool) {
         // winner branch of the next round
         let mut new_win_b = Players::default();
         // loser branch of the next round
@@ -144,9 +149,10 @@ impl<B: Backend> Format<B> for DoubleElemination {
             println!("bye-bye {loser}");
             knocked.0.push(loser); // loser get's eleminated: knocked out
         }
+        let shuffle = if standard { None } else { Some(B::shuffle) };
         // and we apply the changes by turning new branches into duels
-        self.winner_branch = new_win_b.into_duels(B::shuffle);
-        self.loser_branch = new_lose_b.into_duels(B::shuffle);
+        self.winner_branch = new_win_b.into_duels(shuffle);
+        self.loser_branch = new_lose_b.into_duels(shuffle);
     }
 
     fn print_status(&self) {
@@ -180,7 +186,7 @@ impl SingleElemination {
     }
 }
 impl<B: Backend> Format<B> for SingleElemination {
-    fn add_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players, standard: bool) {
         let mut branch = players;
         let mut knocked = Players::default();
         if branch.0.len() % 2 == 1 {
@@ -188,8 +194,9 @@ impl<B: Backend> Format<B> for SingleElemination {
             let loser = Duel::handle_special::<B>(&mut branch);
             knocked.0.push(loser); // loser get's pushed to loser branch
         }
+        let shuffle = if standard { None } else { Some(B::shuffle) };
         *self = Self {
-            branch: branch.into_duels(B::shuffle),
+            branch: branch.into_duels(shuffle),
             knocked,
         };
     }
@@ -198,7 +205,7 @@ impl<B: Backend> Format<B> for SingleElemination {
         self.branch.is_empty()
     }
 
-    fn play_round(&mut self) {
+    fn play_round(&mut self, standard: bool) {
         // winner branch of the next round
         let mut new_branch = Players::default();
         // knocked players of the next round
@@ -237,8 +244,9 @@ impl<B: Backend> Format<B> for SingleElemination {
             knocked.0.push(loser); // loser get's knocked out
         }
 
+        let shuffle = if standard { None } else { Some(B::shuffle) };
         // and we apply the changes by turning new branches into duels
-        self.branch = new_branch.into_duels(B::shuffle);
+        self.branch = new_branch.into_duels(shuffle);
     }
 
     fn print_status(&self) {
@@ -285,6 +293,7 @@ impl RoundRobin {
             // index of the first one
             let homie = duel_idxs.remove(0);
             // index of the last one
+            // FIXME: while let Some() .. pop()
             let guest = duel_idxs.pop().unwrap();
             // the actual players themselves
             let (homie, guest) = (
@@ -311,7 +320,7 @@ impl RoundRobin {
     }
 }
 impl<B: Backend> Format<B> for RoundRobin {
-    fn add_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players, _: bool) {
         // simply apply players
         self.players = players;
 
@@ -341,7 +350,7 @@ impl<B: Backend> Format<B> for RoundRobin {
         self.round == self.len()
     }
 
-    fn play_round(&mut self) {
+    fn play_round(&mut self, _: bool) {
         // execute duels: get outcomes
         for duel in &self.duels {
             println!("\n{duel}");
@@ -393,7 +402,7 @@ impl SwissSystem {
     //     }
 }
 impl<B: Backend> Format<B> for SwissSystem {
-    fn add_players(&mut self, players: Players) {
+    fn add_players(&mut self, players: Players, _: bool) {
         todo!()
     }
 
@@ -401,7 +410,7 @@ impl<B: Backend> Format<B> for SwissSystem {
         todo!()
     }
 
-    fn play_round(&mut self) {
+    fn play_round(&mut self, _: bool) {
         todo!()
     }
 

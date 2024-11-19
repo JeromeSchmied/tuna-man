@@ -11,7 +11,7 @@ pub mod backend;
 ///
 /// - [x] [single-knockout](https://en.wikipedia.org/wiki/Single-elimination_tournament)
 /// - [x] [double-knockout](https://en.wikipedia.org/wiki/Double-elimination_tournament)
-/// - [ ] [round-robin](https://en.wikipedia.org/wiki/Round-robin_tournament)
+/// - [x] [round-robin](https://en.wikipedia.org/wiki/Round-robin_tournament)
 /// - [ ] [swiss-system](https://en.wikipedia.org/wiki/Swiss-system_tournament)
 pub mod format;
 /// dealing with a bunch of players
@@ -38,7 +38,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     // }
 
     /// run the whole Tournament
-    pub fn run(mut self) {
+    pub fn run(mut self, standard: bool) {
         // number of rounds
         let mut round = 0;
 
@@ -47,7 +47,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             // winner branch duels this round
             println!("\n\n\n\nRound {round}.\n");
             self.print_status();
-            self.play_next_round();
+            self.play_next_round(standard);
 
             round += 1;
         }
@@ -79,27 +79,31 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
         self.format.results()
     }
     /// `self` but with `players`
-    pub fn with_players(mut self, players: Players) -> Self {
+    pub fn with_players(mut self, players: Players, standard: bool) -> Self {
         assert!(
             players.0.len() >= 3,
             "you need at least 3 participants to play a tournament"
         );
-        self.format.add_players(players);
+        self.format.add_players(players, standard);
 
         self
     }
     /// add players to `self` read from file at `path`
-    pub fn players_from_path(self, path: impl AsRef<Path>) -> std::io::Result<Self> {
+    pub fn players_from_path(
+        self,
+        path: impl AsRef<Path>,
+        standard: bool,
+    ) -> std::io::Result<Self> {
         let players = Players::load(path)?;
-        Ok(self.with_players(players))
+        Ok(self.with_players(players, standard))
     }
     /// `self` is ended, we've got all the results
     pub fn is_end(&self) -> bool {
         self.format.is_end()
     }
     /// play the next round
-    pub fn play_next_round(&mut self) {
-        B::play_round(self);
+    pub fn play_next_round(&mut self, standard: bool) {
+        B::play_round(self, standard);
     }
     // pub fn execute(
     //     &mut self,

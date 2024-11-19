@@ -172,7 +172,7 @@ impl Duel {
     pub fn handle_special<B: super::backend::Backend>(
         branch: &mut super::players::Players,
     ) -> Player {
-        branch.shuffle_as_pairs(B::shuffle); // make a suitable duel
+        branch.shuffle_as_pairs(Some(B::shuffle)); // make a suitable duel
         let (homie, guest) = (branch.0.remove(0), branch.0.swap_remove(0)); // remove first two
         let duel = Duel::new(homie, guest); // create a duel
         println!("{duel}");

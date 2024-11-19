@@ -18,7 +18,7 @@ mod double_elemination {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv").unwrap()
+        tment.players_from_path("data.csv", false).unwrap()
     }
 
     #[test]
@@ -36,8 +36,8 @@ mod double_elemination {
         ]);
         let xp_lb = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
         let exp_f = DE::new(
-            xp_wb.into_duels(BT::shuffle),
-            xp_lb.into_duels(BT::shuffle),
+            xp_wb.into_duels(Some(BT::shuffle)),
+            xp_lb.into_duels(Some(BT::shuffle)),
             Players::default(),
         );
         let exp = Tournament {
@@ -52,8 +52,8 @@ mod double_elemination {
         let mut tment = tournament();
         let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
             let exp_f = DE::new(
-                xp_bs.0.into_duels(BT::shuffle),
-                xp_bs.1.into_duels(BT::shuffle),
+                xp_bs.0.into_duels(Some(BT::shuffle)),
+                xp_bs.1.into_duels(Some(BT::shuffle)),
                 xp_bs.2,
             );
             let tm = Tournament {
@@ -145,7 +145,7 @@ mod double_elemination {
 
         for xp_bs in xp_bs {
             test_eq(xp_bs, &tment);
-            tment.play_next_round();
+            tment.play_next_round(false);
         }
     }
 }
@@ -163,7 +163,7 @@ mod single_elemination {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv").unwrap()
+        tment.players_from_path("data.csv", false).unwrap()
     }
 
     #[test]
@@ -180,7 +180,7 @@ mod single_elemination {
             nu_p("Expectant Wolfhound", 9, 'D'),
         ]);
         let xp_k = Players(vec![nu_p("Casual Ptarmigan", 11, 'B')]);
-        let exp_f = SE::new(xp_b.into_duels(BT::shuffle), xp_k);
+        let exp_f = SE::new(xp_b.into_duels(Some(BT::shuffle)), xp_k);
         let exp = Tournament {
             format: exp_f,
             _backend: B,
@@ -192,7 +192,7 @@ mod single_elemination {
     fn tment() {
         let mut tment = tournament();
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
-            let exp_f = SE::new(xp_bs.0.into_duels(BT::shuffle), xp_bs.1);
+            let exp_f = SE::new(xp_bs.0.into_duels(Some(BT::shuffle)), xp_bs.1);
             let exp_tm = Tournament {
                 format: exp_f,
                 _backend: B,
@@ -266,7 +266,7 @@ mod single_elemination {
 
         for xp_bs in xp_bs {
             test_eq(xp_bs, &tment);
-            tment.play_next_round();
+            tment.play_next_round(false);
         }
     }
 }
@@ -286,7 +286,7 @@ mod round_robin {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv").unwrap()
+        tment.players_from_path("data.csv", false).unwrap()
     }
 
     #[test]
@@ -420,7 +420,7 @@ mod round_robin {
         while !tment.is_end() {
             let xp = xps.next().unwrap();
             test_eq(xp, &tment);
-            tment.play_next_round();
+            tment.play_next_round(false);
         }
     }
 }
