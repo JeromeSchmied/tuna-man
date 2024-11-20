@@ -114,6 +114,74 @@ mod single_elemination {
 
     type SE = format::SingleElemination;
 
+    #[test]
+    fn tment_clean() {
+        let team = |name: &&str| Player {
+            name: name.to_string(),
+            class: None,
+        };
+        let teams = |teams: &[&str]| teams.iter().map(team).collect::<Vec<_>>();
+        let mut tment = Tournament::new(B, SE::default())
+            .players_from_path("football-teams.csv", true)
+            .unwrap();
+
+        let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
+            let exp_tm = Tournament {
+                format: SE::new(xp_bs.0.into_duels(NO_SHUFFLE), xp_bs.1),
+                _backend: B,
+            };
+            assert_eq!(&exp_tm, tment);
+        };
+        let gen_bs = |wb: &[&str], kb: &[&str]| (Players(teams(wb)), Players(teams(kb)));
+        let xp_bs = [
+            gen_bs(
+                &[
+                    "Germany", "Paraguay", "Mexico", "Usa", "Spain", "Ireland", "Korea", "Italy",
+                    "Denmark", "England", "Brazil", "Belgium", "Sweden", "Senegal", "Japan",
+                    "Turkey",
+                ],
+                &[],
+            ),
+            gen_bs(
+                &[
+                    "Germany", "Mexico", "Spain", "Korea", "Denmark", "Brazil", "Sweden", "Japan",
+                ],
+                &[
+                    "Paraguay", "Usa", "Ireland", "Italy", "England", "Belgium", "Senegal",
+                    "Turkey",
+                ],
+            ),
+            gen_bs(
+                &["Germany", "Spain", "Denmark", "Sweden"],
+                &[
+                    "Paraguay", "Usa", "Ireland", "Italy", "England", "Belgium", "Senegal",
+                    "Turkey", "Mexico", "Korea", "Brazil", "Japan",
+                ],
+            ),
+            gen_bs(
+                &["Germany", "Denmark"],
+                &[
+                    "Paraguay", "Usa", "Ireland", "Italy", "England", "Belgium", "Senegal",
+                    "Turkey", "Mexico", "Korea", "Brazil", "Japan", "Spain", "Sweden",
+                ],
+            ),
+            gen_bs(
+                &[],
+                &[
+                    "Paraguay", "Usa", "Ireland", "Italy", "England", "Belgium", "Senegal",
+                    "Turkey", "Mexico", "Korea", "Brazil", "Japan", "Spain", "Sweden", "Denmark",
+                    "Germany",
+                ],
+            ),
+        ];
+
+        for xp_bs in xp_bs {
+            test_eq(xp_bs, &tment);
+            tment.play_next_round(true);
+        }
+        assert!(tment.is_end());
+    }
+
     fn tournament() -> Tournament<BT, SE> {
         let tment = Tournament::new(B, SE::default());
         let exp = Tournament {
