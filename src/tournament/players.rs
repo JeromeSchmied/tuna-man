@@ -21,10 +21,10 @@ impl Players {
         writer.flush()
     }
     /// shuffle in a way, that every two following players make up a [`Duel`]
-    pub fn shuffle_as_pairs(&mut self, shuffle: Option<impl FnOnce(&mut Self)>) {
+    pub fn shuffle_as_pairs(&mut self, shuffle: bool) {
         // shuffle to make match-making unpredictable
-        if let Some(shuffle) = shuffle {
-            shuffle(self);
+        if shuffle {
+            fastrand::shuffle(&mut self.0);
         }
         if self.0.first().is_some_and(|p| p.class.is_none()) {
             // if no classes present, no need for diff-list
@@ -47,7 +47,7 @@ impl Players {
         self.0 = as_pairs; // apply changes
     }
     /// convert `self` into [`Duel`]s
-    pub fn into_duels(mut self, shuffle: Option<impl FnOnce(&mut Self)>) -> Vec<Duel> {
+    pub fn into_duels(mut self, shuffle: bool) -> Vec<Duel> {
         if self.0.is_empty() {
             return vec![];
         }
@@ -115,9 +115,9 @@ impl Players {
 
 #[cfg(test)]
 pub mod tests {
-    use super::{super::backend, *};
+    use super::*;
 
-    const SHUFFLE: Option<fn(&mut Players)> = Some(<backend::Test as backend::Backend>::shuffle);
+    const SHUFFLE: bool = false;
 
     pub fn load_players() -> Players {
         Players::load("data.csv").unwrap()

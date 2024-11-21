@@ -1,10 +1,8 @@
-use super::{format::Format, players::Players, structs::Duel, Tournament};
+use super::{format::Format, structs::Duel, Tournament};
 use std::io::Write;
 
 /// Internal features necessary for retrieving information about a [`Tournament`]
 pub trait Backend {
-    /// how to shuffle the `players` before matching them into [`Duel`]s
-    fn shuffle(players: &mut Players);
     /// how to retrieve outcome of a [`Duel`]
     fn get_outcome(duel: Duel) -> Result<Duel, ()>;
 
@@ -22,8 +20,6 @@ pub trait Backend {
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Test;
 impl Backend for Test {
-    fn shuffle(_players: &mut Players) {}
-
     fn get_outcome(duel: Duel) -> Result<Duel, ()> {
         Ok(duel.clone().with_outcome(Some(true)))
     }
@@ -31,11 +27,6 @@ impl Backend for Test {
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Cli;
 impl Backend for Cli {
-    /// randomly shuffle
-    fn shuffle(players: &mut Players) {
-        fastrand::shuffle(&mut players.0);
-    }
-
     /// we read from `stdin`
     fn get_outcome(duel: Duel) -> Result<Duel, ()> {
         print!("winner: ");
