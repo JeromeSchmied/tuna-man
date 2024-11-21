@@ -11,41 +11,13 @@ mod double_elemination {
 
     type DE = format::DoubleElemination;
 
-    fn tournament() -> Tournament<BT, DE> {
-        let tment = Tournament::new(B, DE::default());
-        let exp = Tournament {
-            format: DE::default(),
-            _backend: B,
-        };
-        assert_eq!(exp, tment);
-        tment.players_from_path("data.csv").unwrap()
-    }
-
-    #[test]
-    fn from_path() {
-        let tment = tournament();
-        let xp_wb = Players(vec![
-            nu_p("Casual Ptarmigan", 11, 'B'),
-            nu_p("Exotic Skunk", 00, 'A'),
-            nu_p("Droll Jaguar", 12, 'C'),
-            nu_p("Usable Bengal", 9, 'C'),
-            nu_p("Inviting Pheasant", 12, 'B'),
-            nu_p("Profound Ponytail", 00, 'B'),
-            nu_p("Expectant Wolfhound", 9, 'D'),
-            nu_p("Central Mite", 10, 'D'),
-        ]);
-        let xp_lb = Players(vec![nu_p("Relative Wrasse", 10, 'C')]);
-        let exp_f = DE::new(xp_wb, xp_lb, Players::default());
-        let exp = Tournament {
-            format: exp_f,
-            _backend: B,
-        };
-        assert_eq!(exp, tment);
-    }
-
     #[test]
     fn tment() {
-        let mut tment = tournament();
+        let mut tment = {
+            Tournament::new(B, DE::default())
+                .players_from_path("data.csv")
+                .unwrap()
+        };
         let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
             let exp_f = DE::new(xp_bs.0, xp_bs.1, xp_bs.2);
             let tm = Tournament {
@@ -62,32 +34,65 @@ mod double_elemination {
         let xp_bs = vec![
             gen_bs(
                 &[
-                    nu_p("Casual Ptarmigan", 11, 'B'),
+                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Relative Wrasse", 10, 'C'),
                     nu_p("Exotic Skunk", 00, 'A'),
                     nu_p("Droll Jaguar", 12, 'C'),
                     nu_p("Usable Bengal", 9, 'C'),
                     nu_p("Inviting Pheasant", 12, 'B'),
                     nu_p("Profound Ponytail", 00, 'B'),
                     nu_p("Expectant Wolfhound", 9, 'D'),
-                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
                 ],
-                &[nu_p("Relative Wrasse", 10, 'C')],
+                &[],
                 &[],
             ),
             gen_bs(
                 &[
-                    nu_p("Casual Ptarmigan", 11, 'B'),
-                    nu_p("Expectant Wolfhound", 9, 'D'),
+                    nu_p("Relative Wrasse", 10, 'C'),
                     nu_p("Inviting Pheasant", 12, 'B'),
                     nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Central Mite", 10, 'D'),
                 ],
                 &[
+                    nu_p("Expectant Wolfhound", 9, 'D'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
+                ],
+                &[
+                    nu_p("Exotic Skunk", 00, 'A'),
                     nu_p("Profound Ponytail", 00, 'B'),
                     nu_p("Usable Bengal", 9, 'C'),
+                ],
+            ),
+            gen_bs(
+                &[
+                    nu_p("Relative Wrasse", 10, 'C'),
+                    nu_p("Central Mite", 10, 'D'),
+                ],
+                &[nu_p("Expectant Wolfhound", 9, 'D')],
+                &[
                     nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Profound Ponytail", 00, 'B'),
+                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
+                ],
+            ),
+            gen_bs(
+                &[],
+                &[],
+                &[
+                    nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Profound Ponytail", 00, 'B'),
+                    nu_p("Usable Bengal", 9, 'C'),
+                    nu_p("Droll Jaguar", 12, 'C'),
+                    nu_p("Inviting Pheasant", 12, 'B'),
+                    nu_p("Casual Ptarmigan", 11, 'B'),
+                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Expectant Wolfhound", 9, 'D'),
                     nu_p("Relative Wrasse", 10, 'C'),
                 ],
-                &[nu_p("Central Mite", 10, 'D')],
             ),
         ];
 
@@ -176,13 +181,9 @@ mod single_elemination {
     #[test]
     fn tment() {
         let mut tment = {
-            let tment = Tournament::new(B, SE::default());
-            let exp = Tournament {
-                format: SE::default(),
-                _backend: B,
-            };
-            assert_eq!(exp, tment);
-            tment.players_from_path("data.csv").unwrap()
+            Tournament::new(B, SE::default())
+                .players_from_path("data.csv")
+                .unwrap()
         };
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
             let exp_tm = Tournament {
