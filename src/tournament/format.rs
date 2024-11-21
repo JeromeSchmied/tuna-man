@@ -136,10 +136,6 @@ impl<B: Backend> Format<B> for DoubleElemination {
                 temp_loser_b.0 = next_loser_b.0.drain(..).collect();
             }
 
-            if temp_loser_b.0.len() % 2 == 1 {
-                temp_loser_b.0.push(Player::default());
-            }
-            assert_ne!(temp_loser_b.0.len() % 2, 1, "scheiß, so geht's ned!");
             let mut second_loser_d = temp_loser_b.into_duels(shuffle);
             // get outcomes for loser branch duels, move contestants to other branch if necessary
             while let Some(l_duel) = second_loser_d.pop() {

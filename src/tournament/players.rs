@@ -51,19 +51,12 @@ impl Players {
         if self.0.is_empty() {
             return vec![];
         }
-        let contains_bye = self.0.contains(&Player::default());
-        if contains_bye {
-            self.0.retain(|p| !p.is_unset());
-        }
-
-        // TODO: add bye here
-        // only works with even number of players
-        // assert_eq!(self.0.len() % 2, 0);
 
         // shuffle and sort into pairs
         self.shuffle_as_pairs(shuffle);
+
         // if needs bye create push it
-        if contains_bye || self.0.len() % 2 == 1 {
+        if self.0.len() % 2 == 1 {
             self.0.push(Player::default());
         }
 
