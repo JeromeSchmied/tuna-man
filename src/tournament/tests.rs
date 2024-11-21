@@ -36,11 +36,7 @@ mod double_elemination {
             nu_p("Central Mite", 10, 'D'),
         ]);
         let xp_lb = Players(vec![nu_p("Relative Wrasse", 10, 'C')]);
-        let exp_f = DE::new(
-            xp_wb.into_duels(NO_SHUFFLE),
-            xp_lb.into_duels(NO_SHUFFLE),
-            Players::default(),
-        );
+        let exp_f = DE::new(xp_wb, xp_lb, Players::default());
         let exp = Tournament {
             format: exp_f,
             _backend: B,
@@ -52,11 +48,7 @@ mod double_elemination {
     fn tment() {
         let mut tment = tournament();
         let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
-            let exp_f = DE::new(
-                xp_bs.0.into_duels(NO_SHUFFLE),
-                xp_bs.1.into_duels(NO_SHUFFLE),
-                xp_bs.2,
-            );
+            let exp_f = DE::new(xp_bs.0, xp_bs.1, xp_bs.2);
             let tm = Tournament {
                 format: exp_f,
                 _backend: B,
@@ -91,12 +83,12 @@ mod double_elemination {
                     nu_p("Droll Jaguar", 12, 'C'),
                 ],
                 &[
-                    nu_p("Relative Wrasse", 10, 'C'),
-                    nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Profound Ponytail", 00, 'B'),
                     nu_p("Usable Bengal", 9, 'C'),
-                    nu_p("Central Mite", 10, 'D'),
+                    nu_p("Exotic Skunk", 00, 'A'),
+                    nu_p("Relative Wrasse", 10, 'C'),
                 ],
-                &[nu_p("Profound Ponytail", 00, 'B')],
+                &[nu_p("Central Mite", 10, 'D')],
             ),
         ];
 

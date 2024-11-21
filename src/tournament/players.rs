@@ -27,7 +27,7 @@ impl Players {
             shuffle(self);
         }
         if self.0.first().is_some_and(|p| p.class.is_none()) {
-            // don't do anything if empty
+            // if no classes present, no need for diff-list
             return;
         }
         // here'll be the players ordered as pairs
@@ -48,20 +48,24 @@ impl Players {
     }
     /// convert `self` into [`Duel`]s
     pub fn into_duels(mut self, shuffle: Option<impl FnOnce(&mut Self)>) -> Vec<Duel> {
-        // being the only player, create a fake duel with a ghost player/bye
-        if self.0.len() == 1 {
-            let halfset_duel = Duel::new(self.0[0].clone(), Player::default());
-            return vec![halfset_duel];
-        }
         if self.0.is_empty() {
             return vec![];
         }
+        let contains_bye = self.0.contains(&Player::default());
+        if contains_bye {
+            self.0.retain(|p| !p.is_unset());
+        }
 
+        // TODO: add bye here
         // only works with even number of players
-        assert_eq!(self.0.len() % 2, 0);
+        // assert_eq!(self.0.len() % 2, 0);
 
         // shuffle and sort into pairs
         self.shuffle_as_pairs(shuffle);
+        // if needs bye create push it
+        if contains_bye || self.0.len() % 2 == 1 {
+            self.0.push(Player::default());
+        }
 
         self.0
             .rchunks_exact_mut(2)
