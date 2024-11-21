@@ -38,7 +38,12 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     // }
 
     /// run the whole Tournament
-    pub fn run(mut self, standard: bool) {
+    pub fn run(mut self, args: crate::args::Args) {
+        let no_shuffle = args.shuffle.never() || args.shuffle.initially();
+        if args.shuffle.initially() || args.shuffle.always() {
+            self.format.initial_shuffle();
+        }
+
         // number of rounds
         let mut round = 0;
 
@@ -47,7 +52,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             // winner branch duels this round
             println!("\n\n\n\nRound {round}.\n");
             self.print_status();
-            self.play_next_round(standard);
+            self.play_next_round(no_shuffle);
 
             round += 1;
         }
@@ -79,23 +84,19 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
         self.format.results()
     }
     /// `self` but with `players`
-    pub fn with_players(mut self, players: Players, standard: bool) -> Self {
+    pub fn with_players(mut self, players: Players) -> Self {
         assert!(
             players.0.len() >= 3,
             "you need at least 3 participants to play a tournament"
         );
-        self.format.add_players(players, standard);
+        self.format.add_players(players);
 
         self
     }
     /// add players to `self` read from file at `path`
-    pub fn players_from_path(
-        self,
-        path: impl AsRef<Path>,
-        standard: bool,
-    ) -> std::io::Result<Self> {
+    pub fn players_from_path(self, path: impl AsRef<Path>) -> std::io::Result<Self> {
         let players = Players::load(path)?;
-        Ok(self.with_players(players, standard))
+        Ok(self.with_players(players))
     }
     /// `self` is ended, we've got all the results
     pub fn is_end(&self) -> bool {

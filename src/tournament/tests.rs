@@ -4,7 +4,6 @@ use structs::Player;
 
 type BT = backend::Test;
 const B: BT = backend::Test;
-const NO_SHUFFLE: Option<fn(&mut Players)> = None;
 
 mod double_elemination {
     use super::*;
@@ -19,7 +18,7 @@ mod double_elemination {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv", true).unwrap()
+        tment.players_from_path("data.csv").unwrap()
     }
 
     #[test]
@@ -114,12 +113,12 @@ mod single_elemination {
         };
         let teams = |teams: &[&str]| teams.iter().map(team).collect::<Vec<_>>();
         let mut tment = Tournament::new(B, SE::default())
-            .players_from_path("football-teams.csv", true)
+            .players_from_path("football-teams.csv")
             .unwrap();
 
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
             let exp_tm = Tournament {
-                format: SE::new(xp_bs.0.into_duels(NO_SHUFFLE), xp_bs.1),
+                format: SE::new(xp_bs.0, xp_bs.1),
                 _backend: B,
             };
             assert_eq!(&exp_tm, tment);
@@ -181,7 +180,7 @@ mod single_elemination {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv", true).unwrap()
+        tment.players_from_path("data.csv").unwrap()
     }
 
     #[test]
@@ -198,7 +197,7 @@ mod single_elemination {
             nu_p("Central Mite", 10, 'D'),
         ]);
         let xp_k = Players(vec![nu_p("Relative Wrasse", 10, 'C')]);
-        let exp_f = SE::new(xp_b.into_duels(NO_SHUFFLE), xp_k);
+        let exp_f = SE::new(xp_b, xp_k);
         let exp = Tournament {
             format: exp_f,
             _backend: B,
@@ -210,7 +209,7 @@ mod single_elemination {
     fn tment() {
         let mut tment = tournament();
         let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
-            let exp_f = SE::new(xp_bs.0.into_duels(NO_SHUFFLE), xp_bs.1);
+            let exp_f = SE::new(xp_bs.0, xp_bs.1);
             let exp_tm = Tournament {
                 format: exp_f,
                 _backend: B,
@@ -305,7 +304,7 @@ mod round_robin {
             _backend: B,
         };
         assert_eq!(exp, tment);
-        tment.players_from_path("data.csv", true).unwrap()
+        tment.players_from_path("data.csv").unwrap()
     }
 
     #[test]

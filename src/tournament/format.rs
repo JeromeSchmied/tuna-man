@@ -26,10 +26,11 @@ pub enum Supported {
 /// a format in which a [`super::Tournament`] shall be made
 pub trait Format<B: Backend> {
     /// add `players` to `self`
-    /// shall be used on initialization
-    ///
-    /// if `standard`, then the original order is preserved, otherwise players are shuffled
-    fn add_players(&mut self, players: Players, standard: bool);
+    /// shall be used for initialization
+    fn add_players(&mut self, players: Players);
+    /// shuffle players
+    /// should be used on initialization
+    fn initial_shuffle(&mut self) {}
     /// has the tournament reached to an end?
     fn is_end(&self) -> bool;
     /// play the next round duels
@@ -59,22 +60,11 @@ impl DoubleElemination {
     }
 }
 impl<B: Backend> Format<B> for DoubleElemination {
-    fn add_players(&mut self, players: Players, standard: bool) {
-        let mut new_win = players;
-        if !standard {
-            new_win.shuffle_as_pairs(Some(B::shuffle));
-        }
-        let mut new_lose = Players::default();
-        if new_win.0.len() % 2 == 1 {
-            println!("\nspecial winner duel: ");
-            let loser = Duel::handle_special::<B>(&mut new_win);
-            new_lose.0.push(loser); // loser get's pushed to loser branch
-        }
-        *self = Self {
-            winner_branch: new_win,
-            loser_branch: new_lose,
-            knocked: Players::default(),
-        };
+    fn add_players(&mut self, players: Players) {
+        self.winner_branch = players;
+    }
+    fn initial_shuffle(&mut self) {
+        B::shuffle(&mut self.winner_branch);
     }
 
     fn is_end(&self) -> bool {
@@ -244,83 +234,78 @@ impl<B: Backend> Format<B> for DoubleElemination {
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Single-elimination_tournament>
 pub struct SingleElemination {
-    branch: Vec<Duel>,
+    branch: Players,
     knocked: Players,
 }
 impl SingleElemination {
-    pub fn new(branch: Vec<Duel>, knocked: Players) -> Self {
+    pub fn new(branch: Players, knocked: Players) -> Self {
         Self { branch, knocked }
     }
 }
 impl<B: Backend> Format<B> for SingleElemination {
-    fn add_players(&mut self, players: Players, standard: bool) {
-        let mut branch = players;
-        let mut knocked = Players::default();
-        if branch.0.len() % 2 == 1 {
-            println!("\nspecial duel: ");
-            let loser = Duel::handle_special::<B>(&mut branch);
-            knocked.0.push(loser); // loser get's pushed to loser branch
-        }
-        let shuffle = if standard { None } else { Some(B::shuffle) };
-        *self = Self {
-            branch: branch.into_duels(shuffle),
-            knocked,
-        };
+    fn add_players(&mut self, players: Players) {
+        self.branch = players;
+    }
+    fn initial_shuffle(&mut self) {
+        B::shuffle(&mut self.branch);
     }
 
     fn is_end(&self) -> bool {
-        self.branch.is_empty()
+        self.branch.0.is_empty()
     }
 
     fn play_round(&mut self, standard: bool) {
         // winner branch of the next round
-        let mut new_branch = Players::default();
+        let mut next_branch = Players::default();
         // knocked players of the next round
         let knocked = &mut self.knocked;
 
+        let shuffle = if standard { None } else { Some(B::shuffle) };
+        let branch = std::mem::take(&mut self.branch);
+        let mut branch_d = branch.into_duels(shuffle);
+
         // get outcomes for branch duels, move contestants to other branch if necessary
-        while let Some(duel) = self.branch.pop() {
+        while let Some(duel) = branch_d.pop() {
             // duel isn't ready yet to be played, waiting for opponent
             if duel.guest.is_unset() {
-                new_branch.0.push(duel.homie); // should get into the next-round winner branch
+                next_branch.0.push(duel.homie); // should get into the next-round winner branch
                 continue;
             }
             println!("\nduel: {duel}");
             // play the duel, that leads us to having the result
             let (winner, loser) = duel.play(B::get_outcome);
-            new_branch.0.push(winner); // winner get's to winner branch
+            next_branch.0.push(winner); // winner get's to winner branch
             println!("bye-bye {loser}");
             knocked.0.push(loser); // loser get's to loser branch
         }
         println!("\n-----------------------------");
 
         // handle special cases on winner branch
-        if new_branch.0.len() == 1 {
-            self.knocked.0.push(new_branch.0.pop().unwrap());
-        } else if new_branch.0.len() == 2 {
+        if next_branch.0.len() == 1 {
+            self.knocked.0.push(next_branch.0.pop().unwrap());
+        } else if next_branch.0.len() == 2 {
             print!("Third place duel: ");
             let mut tmp_branch = Players(vec![knocked.0.pop().unwrap(), knocked.0.pop().unwrap()]);
             let loser = Duel::handle_special::<B>(&mut tmp_branch);
             let (third, fourth) = (tmp_branch.0.pop().unwrap(), loser);
             self.knocked.0.push(fourth);
             self.knocked.0.push(third);
-        } else if new_branch.0.len() % 2 == 1 {
+        } else if next_branch.0.len() % 2 == 1 {
             // not divisible by 2: we need a special pre-match: duel
             print!("\nspecial duel: ");
-            let loser = Duel::handle_special::<B>(&mut new_branch);
+            let loser = Duel::handle_special::<B>(&mut next_branch);
             knocked.0.push(loser); // loser get's knocked out
         }
 
-        let shuffle = if standard { None } else { Some(B::shuffle) };
         // and we apply the changes by turning new branches into duels
-        self.branch = new_branch.into_duels(shuffle);
+        self.branch = next_branch;
     }
 
     fn print_status(&self) {
         // winner branch duels this round
-        println!("--------\n\nDuels:\n");
-        for duel in &self.branch {
-            println!("    {duel}");
+        println!("--------\n\nPlayers:\n");
+        for player in &self.branch.0 {
+            println!("    {player}");
         }
         println!("\n-----------------------------\n\n");
     }
@@ -384,7 +369,7 @@ impl RoundRobin {
     }
 }
 impl<B: Backend> Format<B> for RoundRobin {
-    fn add_players(&mut self, players: Players, _: bool) {
+    fn add_players(&mut self, players: Players) {
         // simply apply players
         self.players = players;
 
@@ -466,7 +451,7 @@ impl SwissSystem {
     //     }
 }
 impl<B: Backend> Format<B> for SwissSystem {
-    fn add_players(&mut self, players: Players, _: bool) {
+    fn add_players(&mut self, players: Players) {
         todo!()
     }
 
