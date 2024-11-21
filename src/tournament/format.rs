@@ -64,7 +64,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
         self.winner_branch = players;
     }
     fn initial_shuffle(&mut self) {
-        B::shuffle(&mut self.winner_branch);
+        self.winner_branch.shuffle_as_pairs(Some(B::shuffle))
     }
 
     fn is_end(&self) -> bool {
@@ -73,7 +73,6 @@ impl<B: Backend> Format<B> for DoubleElemination {
 
     // TODO: organize to sub-functions
     fn play_round(&mut self, standard: bool) {
-        dbg!(&self);
         // winner branch of the next round
         let mut next_winner_b = Players::default();
         // loser branch of the next round
@@ -106,7 +105,6 @@ impl<B: Backend> Format<B> for DoubleElemination {
         // TODO: careful with byes
         {
             let mut prev_loser_b = std::mem::take(&mut self.loser_branch);
-            dbg!(&next_winner_b, &prev_loser_b, &next_loser_b,);
 
             let mut temp_loser_b = Players::default();
             if !prev_loser_b.0.is_empty() {
@@ -138,9 +136,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
                 temp_loser_b.0 = next_loser_b.0.drain(..).collect();
             }
 
-            dbg!(&next_winner_b, &temp_loser_b, &next_loser_b);
             if temp_loser_b.0.len() % 2 == 1 {
-                dbg!("bye needed");
                 temp_loser_b.0.push(Player::default());
             }
             assert_ne!(temp_loser_b.0.len() % 2, 1, "scheiß, so geht's ned!");
@@ -160,7 +156,6 @@ impl<B: Backend> Format<B> for DoubleElemination {
                 knocked.0.push(loser); // loser get's knocked out of the tournament
             }
         }
-        dbg!(&next_winner_b, &next_loser_b, &knocked);
         if next_winner_b.0.len() == 1 && next_loser_b.0.len() == 1 {
             // final game: only player from winner and loser branch
             let homie = next_winner_b.0.pop().unwrap();
@@ -247,7 +242,7 @@ impl<B: Backend> Format<B> for SingleElemination {
         self.branch = players;
     }
     fn initial_shuffle(&mut self) {
-        B::shuffle(&mut self.branch);
+        self.branch.shuffle_as_pairs(Some(B::shuffle))
     }
 
     fn is_end(&self) -> bool {
