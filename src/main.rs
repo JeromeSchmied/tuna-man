@@ -9,12 +9,7 @@ mod tournament;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
-    // let format: Box<dyn format::Format<backend::Cli>> = match args.format {
-    //     format::Supported::SingleElemination => Box::new(format::SingleElemination::default()),
-    //     format::Supported::DoubleElemination => Box::new(format::DoubleElemination::default()),
-    //     format::Supported::RoundRobin => todo!(),
-    //     format::Supported::SwissSystem => todo!(),
-    // };
+    // let mut tournament = args.format.to_format();
     // new tournament, communicate with the user via the cli
     let backend = backend::Cli;
     match args.format {
@@ -31,7 +26,6 @@ fn main() -> std::io::Result<()> {
             Tournament::new(backend, format::SwissSystem::default()).execute(args)
         }
     }
-    // players.save();
 
     // TODO: ratatui ui
     // let mut terminal = ratatui::try_init()?;

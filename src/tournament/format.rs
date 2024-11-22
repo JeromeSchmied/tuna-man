@@ -25,11 +25,11 @@ pub enum Supported {
 // impl Supported {
 //     pub fn to_format<B: Backend>(self) -> Box<dyn Format<B>> {
 //         match self {
-//             Supported::SingleElemination => Box::new(SingleElemination::default()),
-//             Supported::DoubleElemination => Box::new(DoubleElemination::default()),
-//             Supported::RoundRobin => todo!(),
-//             Supported::SwissSystem => todo!(),
-//         }
+//             Self::SingleElemination => Box::new(format::SingleElemination::default()),
+//             Self::DoubleElemination => Box::new(format::DoubleElemination::default()),
+//             Self::RoundRobin => Box::new(format::RoundRobin::default()),
+//             Self::SwissSystem => Box::new(format::SwissSystem::default()),
+//         };
 //     }
 // }
 

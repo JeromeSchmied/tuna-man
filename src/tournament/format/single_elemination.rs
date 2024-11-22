@@ -3,8 +3,8 @@ use super::*;
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Single-elimination_tournament>
 pub struct SingleElemination {
-    pub(crate) branch: Players,
-    pub(crate) knocked: Players,
+    pub branch: Players,
+    pub knocked: Players,
 }
 
 impl SingleElemination {

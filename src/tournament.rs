@@ -3,6 +3,7 @@ use format::Format;
 use players::Players;
 use std::path::Path;
 
+// TODO: not necessary: could use #[cfg(test)] and global get_outcome() function
 /// how we interact with the user
 pub mod backend;
 /// # the format of the tournament
@@ -30,19 +31,17 @@ pub struct Tournament<B: Backend, F: Format<B>> {
 }
 
 impl<B: Backend, F: Format<B>> Tournament<B, F> {
-    // pub fn with_tables(self, tables: &[Table]) -> Self {
-    //     Self {
-    //         tables: tables.into(),
-    //         ..self
-    //     }
-    // }
-
+    pub fn new(backend: B, format: F) -> Self {
+        Self {
+            _backend: backend,
+            format,
+        }
+    }
     /// execute the Tournament with options from `args`
     pub fn execute(self, args: crate::args::Args) -> std::io::Result<()> {
         self.players_from_path(&args.file)?.run(args);
         Ok(())
     }
-
     /// run the whole Tournament
     pub fn run(mut self, args: crate::args::Args) {
         let no_shuffle = args.shuffle.never() || args.shuffle.initially();
@@ -57,13 +56,13 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
         while !self.is_end() {
             // winner branch duels this round
             println!("\n\n\n\nRound {round}.\n");
-            self.print_status();
+            self.format.print_status();
             self.play_next_round(no_shuffle);
 
             round += 1;
         }
 
-        let mut knocked = self.results();
+        let mut knocked = self.format.results();
         // printing results
         println!("\nTournament ended in {round} rounds, Results:");
         println!("\n\nPODIUM\n------\n");
@@ -74,20 +73,6 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
         for (place, player) in knocked.0.iter().rev().enumerate() {
             println!("{}. place: {player}", place + 4);
         }
-    }
-    /// print the current status
-    pub fn print_status(&self) {
-        self.format.print_status();
-    }
-    pub fn new(backend: B, format: F) -> Self {
-        Self {
-            _backend: backend,
-            format,
-        }
-    }
-    /// results in reversed order
-    pub fn results(self) -> Players {
-        self.format.results()
     }
     /// `self` but with `players`
     pub fn with_players(mut self, players: Players) -> Self {
@@ -116,26 +101,22 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     //     &mut self,
     //     term: &mut ratatui::Terminal<impl ratatui::backend::Backend>,
     // ) -> std::io::Result<()> {
-    //     todo!("app logic");
     //     loop {
     //         term.draw(|f| self.ui(f))?;
-
     //         if let Event::Key(key) = event::read()? {
     //             if key.kind != KeyEventKind::Press {
     //                 continue;
     //             }
     //             match key.code {
     //                 KeyCode::Char('q') | KeyCode::Esc => break,
-    //                 KeyCode::Char('j') | KeyCode::Down => todo!(),
-    //                 KeyCode::Char('k') | KeyCode::Up => todo!(),
-    //                 KeyCode::Char('r') => todo!(),
-    //                 KeyCode::Char('n') | KeyCode::Char('l') | KeyCode::Right => todo!(),
-    //                 KeyCode::Char('p') | KeyCode::Char('h') | KeyCode::Left => todo!(),
-    //                 KeyCode::Char('R') | KeyCode::Backspace => todo!(),
+    //                 KeyCode::Char('r') => restart(),
+    //                 KeyCode::Char('l') | KeyCode::Right => cursor.right(),
+    //                 KeyCode::Char('h') | KeyCode::Left => cursor.left(),
+    //                 KeyCode::Char('j') | KeyCode::Down => cursor.down(),
+    //                 KeyCode::Char('k') | KeyCode::Up => cursor.up(),
     //                 _ => {}
     //             }
     //         } else {
-    //             // resize and restart
     //         }
     //     }
     //     Ok(())

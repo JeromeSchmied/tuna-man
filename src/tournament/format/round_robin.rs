@@ -3,24 +3,25 @@ use super::*;
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament>
 pub struct RoundRobin {
+    // TODO: delete this field, not necessary
     /// currently relevant [`Duel`]s to be carried out
-    pub(crate) duels: Vec<Duel>,
+    pub duels: Vec<Duel>,
     /// all the participating [`Players`]
-    pub(crate) players: Players,
+    pub players: Players,
     /// points of the `players`
-    pub(crate) points: HashMap<Player, u8>,
+    pub points: HashMap<Player, u8>,
     /// the number of `round`s already executed
-    pub(crate) round: usize,
+    pub round: usize,
 }
 
 impl RoundRobin {
     /// number of [`Self::players`]
-    pub(crate) fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.players.0.len()
     }
     /// update the [`Self::duels`], so in the upcoming round [`Player`]s play against other ones as well
     /// circle-method, implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament#Circle_method>
-    pub(crate) fn update_duels(&mut self) {
+    pub fn update_duels(&mut self) {
         // the indexed order of duels
         let mut duel_idxs = (1..self.len()).collect::<Vec<_>>();
         duel_idxs.rotate_right(self.round);

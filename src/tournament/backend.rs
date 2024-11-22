@@ -7,12 +7,7 @@ pub trait Backend {
     fn get_outcome(duel: Duel) -> Result<Duel, ()>;
 
     /// play a round of a [`Tournament`]
-    /// double-knockout for now
-    // TODO: support more formats
-    fn play_round<B: Backend, F: Format<B>>(tournament: &mut Tournament<B, F>, standard: bool)
-    where
-        Self: Sized,
-    {
+    fn play_round<B: Backend, F: Format<B>>(tournament: &mut Tournament<B, F>, standard: bool) {
         tournament.format.play_round(standard);
     }
 }

@@ -45,15 +45,14 @@ impl DoubleElemination {
 
         let mut temp_loser_b = Players::default();
         if prev_loser_b.0.is_empty() {
-            temp_loser_b.0 = next_loser_b.0.drain(..).collect();
+            temp_loser_b.0.append(&mut next_loser_b.0);
         } else {
+            // insertion idx
+            let mut i = 1;
             // insert new losers into prev losers
-            {
-                let mut i = 1;
-                while i <= prev_loser_b.0.len() && !next_loser_b.0.is_empty() {
-                    prev_loser_b.0.insert(i, next_loser_b.0.remove(0));
-                    i += 2;
-                }
+            while i <= prev_loser_b.0.len() && !next_loser_b.0.is_empty() {
+                prev_loser_b.0.insert(i, next_loser_b.0.remove(0));
+                i += 2;
             }
 
             let mut first_loser_d = prev_loser_b.into_duels(shuffle);
@@ -103,15 +102,14 @@ impl<B: Backend> Format<B> for DoubleElemination {
         self.winner_branch.0.is_empty() && self.loser_branch.0.is_empty()
     }
 
-    // TODO: organize to sub-functions
     fn play_round(&mut self, standard: bool) {
         let (mut next_winner_b, mut next_loser_b) = self.play_winner_branch::<B>(!standard);
         println!("\n-----------------------------");
 
         self.play_loser_branch::<B>(&mut next_loser_b, !standard);
 
+        // final game: only player from winner and loser branch
         if next_winner_b.0.len() == 1 && next_loser_b.0.len() == 1 {
-            // final game: only player from winner and loser branch
             let homie = next_winner_b.0.pop().unwrap();
             let guest = next_loser_b.0.pop().unwrap();
             let finals = Duel::new(homie, guest);
@@ -123,34 +121,15 @@ impl<B: Backend> Format<B> for DoubleElemination {
             self.knocked.0.push(winner);
         }
 
-        // handle special cases on winner branch
-        if next_winner_b.0.len() == 1 {
-            println!(
-                "soon final: only winner branch remainder: {}",
-                next_winner_b.0[0]
-            );
-        } else if next_winner_b.0.len() % 2 == 1 {
-            // not divisible by 2: we need a special pre-match: duel
+        // uneven number of players: we need a special pre-match-duel
+        if next_winner_b.0.len() != 1 && next_winner_b.0.len() % 2 == 1 {
             print!("\nspecial winner duel: ");
             let loser = Duel::handle_special::<B>(&mut next_winner_b);
             next_loser_b.0.push(loser); // loser get's pushed to loser branch
         }
 
-        // handle special cases on loser branch
-        if next_loser_b.0.len() == 1 {
-            println!("FINAL SOON");
-            // // final game: only player from winner and loser branch
-            // let homie = next_winner_b.0.pop().unwrap();
-            // let guest = next_loser_b.0.pop().unwrap();
-            // let finals = Duel::new(homie, guest);
-            // println!("FINAL GAME: {finals}");
-            // let (winner, second) = finals.play(B::get_outcome);
-            // // NOTE: everyone get's to the knocked players' list,
-            // // as it turns into the leaderboard if reversed
-            // knocked.0.push(second);
-            // knocked.0.push(winner);
-        } else if next_loser_b.0.len() % 2 == 1 {
-            // not divisible by 2: we need a special pre-match: duel
+        // uneven number of players: we need a special pre-match-duel
+        if next_loser_b.0.len() != 1 && next_loser_b.0.len() % 2 == 1 {
             println!("\nspecial loser duel: ");
             let loser = Duel::handle_special::<B>(&mut next_loser_b);
             println!("bye-bye {loser}");

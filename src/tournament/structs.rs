@@ -49,7 +49,7 @@ impl std::fmt::Display for Player {
 /// a class that a player attends in a school, institution
 /// format: <grade: number, 0-255><id: any character: Unicode scalar value>
 pub struct Class {
-    /// the number of years spent in the institution, whatever. eg: 10
+    /// the number of years already spent in the institution, whatever. eg: 10
     pub grade: u8,
     /// the id of the class, eg: C
     pub id: char,
