@@ -9,7 +9,7 @@ mod tournament;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
-    // let mut tournament = args.format.to_format();
+    // let format = args.format.to_format();
     match args.format {
         format::Supported::SingleElemination => {
             Tournament::new(format::SingleElemination::default()).execute(args)

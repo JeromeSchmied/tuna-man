@@ -22,13 +22,13 @@ pub enum Supported {
     SwissSystem,
 }
 // impl Supported {
-//     pub fn to_format<B: Backend>(self) -> Box<dyn Format<B>> {
+//     pub fn to_format(self) -> Box<dyn Format> {
 //         match self {
-//             Self::SingleElemination => Box::new(format::SingleElemination::default()),
-//             Self::DoubleElemination => Box::new(format::DoubleElemination::default()),
-//             Self::RoundRobin => Box::new(format::RoundRobin::default()),
-//             Self::SwissSystem => Box::new(format::SwissSystem::default()),
-//         };
+//             Self::SingleElemination => Box::new(SingleElemination::default()),
+//             Self::DoubleElemination => Box::new(DoubleElemination::default()),
+//             Self::RoundRobin => Box::new(RoundRobin::default()),
+//             Self::SwissSystem => Box::new(SwissSystem::default()),
+//         }
 //     }
 // }
 
