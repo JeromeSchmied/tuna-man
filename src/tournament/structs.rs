@@ -121,11 +121,12 @@ impl Duel {
         Self { outcome, ..self }
     }
     #[cfg(test)]
-    pub fn get_outcome(self) -> Result<Duel, ()> {
-        Ok(self.clone().with_outcome(Some(true)))
+    pub fn get_outcome(&mut self) -> Result<(), ()> {
+        self.outcome = Some(true);
+        Ok(())
     }
     #[cfg(not(test))]
-    pub fn get_outcome(self) -> Result<Duel, ()> {
+    pub fn get_outcome(&mut self) -> Result<(), ()> {
         print!("winner: ");
         std::io::stdout().flush().map_err(|_| ())?;
         let mut buf = String::new();
@@ -149,7 +150,8 @@ impl Duel {
             }
         };
         // println!("{self}");
-        Ok(self.clone().with_outcome(outcome))
+        self.outcome = outcome;
+        Ok(())
     }
     /// take winner of the game
     ///
@@ -185,10 +187,10 @@ impl Duel {
     }
 
     /// play the [`Duel`]: get an outcome with `read_outcome`
-    pub fn play(self) -> (Player, Player) {
+    pub fn play(mut self) -> (Player, Player) {
         loop {
-            if let Ok(mut with_outcome) = self.clone().get_outcome() {
-                return (with_outcome.take_winner(), with_outcome.take_loser());
+            if let Ok(()) = self.get_outcome() {
+                return (self.take_winner(), self.take_loser());
             }
             println!("invalid input");
         }
