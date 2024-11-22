@@ -102,6 +102,81 @@ mod double_elemination {
         }
         assert!(tment.is_end());
     }
+    #[test]
+    fn tment_clean() {
+        let mut tment = {
+            Tournament::new(B, DE::default())
+                .players_from_path("football-teams.csv")
+                .unwrap()
+        };
+        let team = |name: &&str| Player {
+            name: name.to_string(),
+            class: None,
+        };
+        let teams = |teams: &[&str]| teams.iter().map(team).collect::<Vec<_>>();
+        let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
+            let exp_f = DE::new(xp_bs.0, xp_bs.1, xp_bs.2);
+            let tm = Tournament {
+                format: exp_f,
+                _backend: B,
+            };
+            assert_eq!(&tm, tment);
+        };
+
+        let gen_bs = |wb: &[&str], lb: &[&str], kb: &[&str]| -> (Players, Players, Players) {
+            (Players(teams(wb)), Players(teams(lb)), Players(teams(kb)))
+        };
+        // eXPected BrancheS
+        let xp_bs = vec![
+            gen_bs(
+                &[
+                    "Germany", "Paraguay", "Mexico", "Usa", "Spain", "Ireland", "Korea", "Italy",
+                    "Denmark", "England", "Brazil", "Belgium", "Sweden", "Senegal", "Japan",
+                    "Turkey",
+                ],
+                &[],
+                &[],
+            ),
+            gen_bs(
+                &[
+                    "Germany", "Mexico", "Spain", "Korea", "Denmark", "Brazil", "Sweden", "Japan",
+                ],
+                &["Paraguay", "Ireland", "England", "Senegal"],
+                &["Usa", "Italy", "Belgium", "Turkey"],
+            ),
+            gen_bs(
+                &["Germany", "Spain", "Denmark", "Sweden"],
+                &["Paraguay", "England"],
+                &[
+                    "Usa", "Italy", "Belgium", "Turkey", "Mexico", "Korea", "Brazil", "Japan",
+                    "Ireland", "Senegal",
+                ],
+            ),
+            gen_bs(
+                &["Germany", "Denmark"],
+                &["Paraguay"],
+                &[
+                    "Usa", "Italy", "Belgium", "Turkey", "Mexico", "Korea", "Brazil", "Japan",
+                    "Ireland", "Senegal", "Spain", "Sweden", "England",
+                ],
+            ),
+            gen_bs(
+                &[],
+                &[],
+                &[
+                    "Usa", "Italy", "Belgium", "Turkey", "Mexico", "Korea", "Brazil", "Japan",
+                    "Ireland", "Senegal", "Spain", "Sweden", "England", "Denmark", "Paraguay",
+                    "Germany",
+                ],
+            ),
+        ];
+
+        for xp_bs in xp_bs {
+            test_eq(xp_bs, &tment);
+            tment.play_next_round(true);
+        }
+        assert!(tment.is_end());
+    }
 }
 
 mod single_elemination {
