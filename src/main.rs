@@ -1,6 +1,6 @@
 use args::Args;
 use clap::Parser;
-use tournament::{backend, format, Tournament};
+use tournament::{format, Tournament};
 
 /// argument parsing
 mod args;
@@ -10,20 +10,18 @@ mod tournament;
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
     // let mut tournament = args.format.to_format();
-    // new tournament, communicate with the user via the cli
-    let backend = backend::Cli;
     match args.format {
         format::Supported::SingleElemination => {
-            Tournament::new(backend, format::SingleElemination::default()).execute(args)
+            Tournament::new(format::SingleElemination::default()).execute(args)
         }
         format::Supported::DoubleElemination => {
-            Tournament::new(backend, format::DoubleElemination::default()).execute(args)
+            Tournament::new(format::DoubleElemination::default()).execute(args)
         }
         format::Supported::RoundRobin => {
-            Tournament::new(backend, format::RoundRobin::default()).execute(args)
+            Tournament::new(format::RoundRobin::default()).execute(args)
         }
         format::Supported::SwissSystem => {
-            Tournament::new(backend, format::SwissSystem::default()).execute(args)
+            Tournament::new(format::SwissSystem::default()).execute(args)
         }
     }
 

@@ -1,5 +1,7 @@
-use super::{backend::Backend, players::Players};
+use super::players::Players;
 use serde::{Deserialize, Serialize};
+#[cfg(not(test))]
+use std::io::Write;
 
 /// a player/contestant/participant/team of a [`super::Tournament`]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default, Hash)]
@@ -118,6 +120,37 @@ impl Duel {
     pub fn with_outcome(self, outcome: Option<bool>) -> Self {
         Self { outcome, ..self }
     }
+    #[cfg(test)]
+    pub fn get_outcome(self) -> Result<Duel, ()> {
+        Ok(self.clone().with_outcome(Some(true)))
+    }
+    #[cfg(not(test))]
+    pub fn get_outcome(self) -> Result<Duel, ()> {
+        print!("winner: ");
+        std::io::stdout().flush().map_err(|_| ())?;
+        let mut buf = String::new();
+        std::io::stdin().read_line(&mut buf).map_err(|_| ())?;
+        let outcome = match buf.trim() {
+            "<" | "homie" => Some(true),
+            ">" | "guest" => Some(false),
+            name => {
+                let name = name.to_lowercase();
+                if self.homie.name.to_lowercase().contains(&name) {
+                    Some(true)
+                } else if self.guest.name.to_lowercase().contains(&name) {
+                    Some(false)
+                } else {
+                    // dbg!(&name);
+                    if matches!(name.as_str(), "q" | "quit" | "exit") {
+                        std::process::exit(0);
+                    }
+                    return Err(());
+                }
+            }
+        };
+        // println!("{self}");
+        Ok(self.clone().with_outcome(outcome))
+    }
     /// take winner of the game
     ///
     /// # Note
@@ -152,9 +185,9 @@ impl Duel {
     }
 
     /// play the [`Duel`]: get an outcome with `read_outcome`
-    pub fn play(self, read_outcome: impl Fn(Self) -> Result<Self, ()>) -> (Player, Player) {
+    pub fn play(self) -> (Player, Player) {
         loop {
-            if let Ok(mut with_outcome) = read_outcome(self.clone()) {
+            if let Ok(mut with_outcome) = self.clone().get_outcome() {
                 return (with_outcome.take_winner(), with_outcome.take_loser());
             }
             println!("invalid input");
@@ -170,11 +203,11 @@ impl Duel {
     /// # Warning
     ///
     /// there's a `println!()` hidden in here
-    pub fn handle_special<B: Backend>(branch: &mut Players) -> Player {
+    pub fn handle_special(branch: &mut Players) -> Player {
         let (homie, guest) = (branch.0.remove(0), branch.0.swap_remove(0)); // remove first two
         let duel = Duel::new(homie, guest); // create a duel
         println!("{duel}");
-        let (winner, loser) = duel.play(B::get_outcome); // play it
+        let (winner, loser) = duel.play(); // play it
         branch.0.push(winner); // winner stays
         loser
     }

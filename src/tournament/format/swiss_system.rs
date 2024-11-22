@@ -10,7 +10,7 @@ impl SwissSystem {
     //     }
 }
 
-impl<B: Backend> Format<B> for SwissSystem {
+impl Format for SwissSystem {
     fn add_players(&mut self, players: Players) {
         todo!()
     }

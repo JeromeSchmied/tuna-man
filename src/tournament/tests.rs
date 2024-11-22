@@ -2,9 +2,6 @@ use super::*;
 use players::tests::nu_p;
 use structs::Player;
 
-type BT = backend::Test;
-const B: BT = backend::Test;
-
 mod double_elemination {
     use super::*;
     use pretty_assertions::assert_eq;
@@ -14,16 +11,13 @@ mod double_elemination {
     #[test]
     fn tment() {
         let mut tment = {
-            Tournament::new(B, DE::default())
+            Tournament::new(DE::default())
                 .players_from_path("data.csv")
                 .unwrap()
         };
-        let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
+        let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<DE>| {
             let exp_f = DE::new(xp_bs.0, xp_bs.1, xp_bs.2);
-            let tm = Tournament {
-                format: exp_f,
-                _backend: B,
-            };
+            let tm = Tournament { format: exp_f };
             assert_eq!(&tm, tment);
         };
 
@@ -105,7 +99,7 @@ mod double_elemination {
     #[test]
     fn tment_clean() {
         let mut tment = {
-            Tournament::new(B, DE::default())
+            Tournament::new(DE::default())
                 .players_from_path("football-teams.csv")
                 .unwrap()
         };
@@ -114,12 +108,9 @@ mod double_elemination {
             class: None,
         };
         let teams = |teams: &[&str]| teams.iter().map(team).collect::<Vec<_>>();
-        let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<BT, DE>| {
+        let test_eq = |xp_bs: (Players, Players, Players), tment: &Tournament<DE>| {
             let exp_f = DE::new(xp_bs.0, xp_bs.1, xp_bs.2);
-            let tm = Tournament {
-                format: exp_f,
-                _backend: B,
-            };
+            let tm = Tournament { format: exp_f };
             assert_eq!(&tm, tment);
         };
 
@@ -192,14 +183,13 @@ mod single_elemination {
             class: None,
         };
         let teams = |teams: &[&str]| teams.iter().map(team).collect::<Vec<_>>();
-        let mut tment = Tournament::new(B, SE::default())
+        let mut tment = Tournament::new(SE::default())
             .players_from_path("football-teams.csv")
             .unwrap();
 
-        let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
+        let test_eq = |xp_bs: (Players, Players), tment: &Tournament<SE>| {
             let exp_tm = Tournament {
                 format: SE::new(xp_bs.0, xp_bs.1),
-                _backend: B,
             };
             assert_eq!(&exp_tm, tment);
         };
@@ -256,14 +246,13 @@ mod single_elemination {
     #[test]
     fn tment() {
         let mut tment = {
-            Tournament::new(B, SE::default())
+            Tournament::new(SE::default())
                 .players_from_path("data.csv")
                 .unwrap()
         };
-        let test_eq = |xp_bs: (Players, Players), tment: &Tournament<BT, SE>| {
+        let test_eq = |xp_bs: (Players, Players), tment: &Tournament<SE>| {
             let exp_tm = Tournament {
                 format: SE::new(xp_bs.0, xp_bs.1),
-                _backend: B,
             };
             assert_eq!(&exp_tm, tment);
         };
@@ -349,11 +338,10 @@ mod round_robin {
 
     type RR = format::RoundRobin;
 
-    fn tournament() -> Tournament<BT, RR> {
-        let tment = Tournament::new(B, RR::default());
+    fn tournament() -> Tournament<RR> {
+        let tment = Tournament::new(RR::default());
         let exp = Tournament {
             format: RR::default(),
-            _backend: B,
         };
         assert_eq!(exp, tment);
         tment.players_from_path("data.csv").unwrap()
@@ -381,10 +369,7 @@ mod round_robin {
 
         let exp_f = RR::new(duels, players, points, 0);
 
-        let exp = Tournament {
-            format: exp_f,
-            _backend: B,
-        };
+        let exp = Tournament { format: exp_f };
         assert_eq!(exp, tment);
     }
 
@@ -408,13 +393,10 @@ mod round_robin {
         let player = |i: usize| players.0[i].clone();
         let duel = |i: usize, j: usize| Duel::new(player(i), player(j));
 
-        let test_eq = |xp: (Vec<Duel>, HashMap<Player, u8>, usize), tment: &Tournament<BT, RR>| {
+        let test_eq = |xp: (Vec<Duel>, HashMap<Player, u8>, usize), tment: &Tournament<RR>| {
             let exp_f = RR::new(xp.0, players.clone(), xp.1.clone(), xp.2);
 
-            let xp_tm = Tournament {
-                format: exp_f,
-                _backend: B,
-            };
+            let xp_tm = Tournament { format: exp_f };
 
             assert_eq!(&xp_tm, tment);
         };

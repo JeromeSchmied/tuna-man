@@ -13,7 +13,7 @@ impl SingleElemination {
     }
 }
 
-impl<B: Backend> Format<B> for SingleElemination {
+impl Format for SingleElemination {
     fn add_players(&mut self, players: Players) {
         self.branch = players;
     }
@@ -43,7 +43,7 @@ impl<B: Backend> Format<B> for SingleElemination {
             }
             println!("\nduel: {duel}");
             // play the duel, that leads us to having the result
-            let (winner, loser) = duel.play(B::get_outcome);
+            let (winner, loser) = duel.play();
             next_branch.0.push(winner); // winner get's to winner branch
             println!("bye-bye {loser}");
             knocked.0.push(loser); // loser get's to loser branch
@@ -56,14 +56,14 @@ impl<B: Backend> Format<B> for SingleElemination {
         } else if next_branch.0.len() == 2 {
             print!("Third place duel: ");
             let mut tmp_branch = Players(vec![knocked.0.pop().unwrap(), knocked.0.pop().unwrap()]);
-            let loser = Duel::handle_special::<B>(&mut tmp_branch);
+            let loser = Duel::handle_special(&mut tmp_branch);
             let (third, fourth) = (tmp_branch.0.pop().unwrap(), loser);
             self.knocked.0.push(fourth);
             self.knocked.0.push(third);
         } else if next_branch.0.len() % 2 == 1 {
             // not divisible by 2: we need a special pre-match: duel
             print!("\nspecial duel: ");
-            let loser = Duel::handle_special::<B>(&mut next_branch);
+            let loser = Duel::handle_special(&mut next_branch);
             knocked.0.push(loser); // loser get's knocked out
         }
 

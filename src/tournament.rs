@@ -1,11 +1,7 @@
-use backend::Backend;
 use format::Format;
 use players::Players;
 use std::path::Path;
 
-// TODO: not necessary: could use #[cfg(test)] and global get_outcome() function
-/// how we interact with the user
-pub mod backend;
 /// # the format of the tournament
 ///
 /// ## available formats:
@@ -24,18 +20,13 @@ pub mod tests;
 
 /// The whole [`Tournament`] with all the [`Players`] and [`Duel`]s
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct Tournament<B: Backend, F: Format<B>> {
+pub struct Tournament<F: Format> {
     format: F,
-    /// the [`backend::Backend`] to use
-    _backend: B,
 }
 
-impl<B: Backend, F: Format<B>> Tournament<B, F> {
-    pub fn new(backend: B, format: F) -> Self {
-        Self {
-            _backend: backend,
-            format,
-        }
+impl<F: Format> Tournament<F> {
+    pub fn new(format: F) -> Self {
+        Self { format }
     }
     /// execute the Tournament with options from `args`
     pub fn execute(self, args: crate::args::Args) -> std::io::Result<()> {
@@ -95,7 +86,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     }
     /// play the next round
     pub fn play_next_round(&mut self, standard: bool) {
-        B::play_round(self, standard);
+        self.format.play_round(standard);
     }
     // pub fn execute(
     //     &mut self,

@@ -56,7 +56,7 @@ impl RoundRobin {
     }
 }
 
-impl<B: Backend> Format<B> for RoundRobin {
+impl Format for RoundRobin {
     fn add_players(&mut self, players: Players) {
         // simply apply players
         self.players = players;
@@ -96,7 +96,7 @@ impl<B: Backend> Format<B> for RoundRobin {
                 continue;
             }
             // execute duel
-            let (winner, _loser) = duel.clone().play(B::get_outcome);
+            let (winner, _loser) = duel.clone().play();
             // winner get's a point
             self.points.entry(winner).and_modify(|p| *p += 1);
         }

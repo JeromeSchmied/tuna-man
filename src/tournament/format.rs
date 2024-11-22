@@ -1,5 +1,4 @@
 use super::{
-    backend::Backend,
     players::Players,
     structs::{Duel, Player},
 };
@@ -34,7 +33,7 @@ pub enum Supported {
 // }
 
 /// a format in which a [`super::Tournament`] shall be made
-pub trait Format<B: Backend> {
+pub trait Format {
     /// add `players` to `self`
     /// shall be used for initialization
     fn add_players(&mut self, players: Players);
