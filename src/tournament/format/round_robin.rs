@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashMap;
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament>

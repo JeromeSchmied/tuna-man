@@ -20,7 +20,7 @@ impl DoubleElemination {
         let (mut next_winner_b, mut next_loser_b) = (Players::default(), Players::default());
         let mut winner_b = std::mem::take(&mut self.winner_branch).into_duels(shuffle);
         // get outcomes for winner branch duels, move contestants to other branch if necessary
-        while let Some(mut w_duel) = winner_b.pop() {
+        while let Some(w_duel) = winner_b.pop() {
             // duel isn't ready yet to be played, waiting for opponent
             if w_duel.guest.is_unset() {
                 next_winner_b.0.push(w_duel.homie); // should get into the next-round winner branch

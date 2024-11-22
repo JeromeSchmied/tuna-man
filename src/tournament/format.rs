@@ -2,7 +2,6 @@ use super::{
     players::Players,
     structs::{Duel, Player},
 };
-use std::collections::HashMap;
 
 pub use double_elemination::DoubleElemination;
 pub use round_robin::RoundRobin;
