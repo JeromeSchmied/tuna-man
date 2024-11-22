@@ -19,31 +19,19 @@ fn main() -> std::io::Result<()> {
     let backend = backend::Cli;
     match args.format {
         format::Supported::SingleElemination => {
-            Tournament::new(backend, format::SingleElemination::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(backend, format::SingleElemination::default()).execute(args)
         }
         format::Supported::DoubleElemination => {
-            Tournament::new(backend, format::DoubleElemination::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(backend, format::DoubleElemination::default()).execute(args)
         }
         format::Supported::RoundRobin => {
-            Tournament::new(backend, format::RoundRobin::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(backend, format::RoundRobin::default()).execute(args)
         }
         format::Supported::SwissSystem => {
-            Tournament::new(backend, format::SwissSystem::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(backend, format::SwissSystem::default()).execute(args)
         }
     }
-    // let mut tournament = Tournament::new(backend::Cli, format).players_from_path(args.file)?;
-
     // players.save();
-
-    Ok(())
 
     // TODO: ratatui ui
     // let mut terminal = ratatui::try_init()?;

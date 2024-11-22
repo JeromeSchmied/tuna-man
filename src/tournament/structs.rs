@@ -35,7 +35,7 @@ impl std::fmt::Display for Player {
             if let Some(class) = self.class {
                 [", ", &class.to_string()].concat()
             } else {
-                "".into()
+                String::new()
             }
         )
     }

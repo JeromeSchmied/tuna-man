@@ -44,7 +44,9 @@ impl DoubleElemination {
         let mut prev_loser_b = std::mem::take(&mut self.loser_branch);
 
         let mut temp_loser_b = Players::default();
-        if !prev_loser_b.0.is_empty() {
+        if prev_loser_b.0.is_empty() {
+            temp_loser_b.0 = next_loser_b.0.drain(..).collect();
+        } else {
             // insert new losers into prev losers
             {
                 let mut i = 1;
@@ -69,8 +71,6 @@ impl DoubleElemination {
                 println!("bye-bye {loser}");
                 self.knocked.0.push(loser); // loser get's knocked out of the tournament
             }
-        } else {
-            temp_loser_b.0 = next_loser_b.0.drain(..).collect();
         }
 
         let mut second_loser_d = temp_loser_b.into_duels(shuffle);
@@ -96,7 +96,7 @@ impl<B: Backend> Format<B> for DoubleElemination {
         self.winner_branch = players;
     }
     fn initial_shuffle(&mut self) {
-        self.winner_branch.shuffle_as_pairs(true)
+        self.winner_branch.shuffle_as_pairs(true);
     }
 
     fn is_end(&self) -> bool {

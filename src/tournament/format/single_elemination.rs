@@ -18,7 +18,7 @@ impl<B: Backend> Format<B> for SingleElemination {
         self.branch = players;
     }
     fn initial_shuffle(&mut self) {
-        self.branch.shuffle_as_pairs(true)
+        self.branch.shuffle_as_pairs(true);
     }
 
     fn is_end(&self) -> bool {

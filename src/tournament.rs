@@ -37,6 +37,12 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     //     }
     // }
 
+    /// execute the Tournament with options from `args`
+    pub fn execute(self, args: crate::args::Args) -> std::io::Result<()> {
+        self.players_from_path(&args.file)?.run(args);
+        Ok(())
+    }
+
     /// run the whole Tournament
     pub fn run(mut self, args: crate::args::Args) {
         let no_shuffle = args.shuffle.never() || args.shuffle.initially();
