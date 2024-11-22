@@ -11,7 +11,7 @@ pub mod backend;
 ///
 /// - [x] [single-knockout](https://en.wikipedia.org/wiki/Single-elimination_tournament)
 /// - [x] [double-knockout](https://en.wikipedia.org/wiki/Double-elimination_tournament)
-/// - [ ] [round-robin](https://en.wikipedia.org/wiki/Round-robin_tournament)
+/// - [x] [round-robin](https://en.wikipedia.org/wiki/Round-robin_tournament)
 /// - [ ] [swiss-system](https://en.wikipedia.org/wiki/Swiss-system_tournament)
 pub mod format;
 /// dealing with a bunch of players
@@ -38,7 +38,12 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
     // }
 
     /// run the whole Tournament
-    pub fn run(mut self) {
+    pub fn run(mut self, args: crate::args::Args) {
+        let no_shuffle = args.shuffle.never() || args.shuffle.initially();
+        if args.shuffle.initially() || args.shuffle.always() {
+            self.format.initial_shuffle();
+        }
+
         // number of rounds
         let mut round = 0;
 
@@ -47,7 +52,7 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
             // winner branch duels this round
             println!("\n\n\n\nRound {round}.\n");
             self.print_status();
-            self.play_next_round();
+            self.play_next_round(no_shuffle);
 
             round += 1;
         }
@@ -98,8 +103,8 @@ impl<B: Backend, F: Format<B>> Tournament<B, F> {
         self.format.is_end()
     }
     /// play the next round
-    pub fn play_next_round(&mut self) {
-        B::play_round(self);
+    pub fn play_next_round(&mut self, standard: bool) {
+        B::play_round(self, standard);
     }
     // pub fn execute(
     //     &mut self,

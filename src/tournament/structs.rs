@@ -1,3 +1,4 @@
+use super::{backend::Backend, players::Players};
 use serde::{Deserialize, Serialize};
 
 /// a player/contestant/participant/team of a [`super::Tournament`]
@@ -169,10 +170,7 @@ impl Duel {
     /// # Warning
     ///
     /// there's a `println!()` hidden in here
-    pub fn handle_special<B: super::backend::Backend>(
-        branch: &mut super::players::Players,
-    ) -> Player {
-        branch.shuffle_as_pairs(B::shuffle); // make a suitable duel
+    pub fn handle_special<B: Backend>(branch: &mut Players) -> Player {
         let (homie, guest) = (branch.0.remove(0), branch.0.swap_remove(0)); // remove first two
         let duel = Duel::new(homie, guest); // create a duel
         println!("{duel}");

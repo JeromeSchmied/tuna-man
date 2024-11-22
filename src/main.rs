@@ -15,29 +15,28 @@ fn main() -> std::io::Result<()> {
     //     format::Supported::RoundRobin => todo!(),
     //     format::Supported::SwissSystem => todo!(),
     // };
-
     // new tournament, communicate with the user via the cli
     let backend = backend::Cli;
     match args.format {
         format::Supported::SingleElemination => {
             Tournament::new(backend, format::SingleElemination::default())
-                .players_from_path(args.file)?
-                .run();
+                .players_from_path(&args.file)?
+                .run(args);
         }
         format::Supported::DoubleElemination => {
             Tournament::new(backend, format::DoubleElemination::default())
-                .players_from_path(args.file)?
-                .run();
+                .players_from_path(&args.file)?
+                .run(args);
         }
         format::Supported::RoundRobin => {
             Tournament::new(backend, format::RoundRobin::default())
-                .players_from_path(args.file)?
-                .run();
+                .players_from_path(&args.file)?
+                .run(args);
         }
         format::Supported::SwissSystem => {
             Tournament::new(backend, format::SwissSystem::default())
-                .players_from_path(args.file)?
-                .run();
+                .players_from_path(&args.file)?
+                .run(args);
         }
     }
     // let mut tournament = Tournament::new(backend::Cli, format).players_from_path(args.file)?;

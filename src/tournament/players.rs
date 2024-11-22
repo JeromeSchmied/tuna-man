@@ -21,13 +21,15 @@ impl Players {
         writer.flush()
     }
     /// shuffle in a way, that every two following players make up a [`Duel`]
-    pub fn shuffle_as_pairs(&mut self, shuffle: impl FnOnce(&mut Self)) {
-        if self.0.is_empty() {
-            // don't do anything if empty
+    pub fn shuffle_as_pairs(&mut self, shuffle: bool) {
+        // shuffle to make match-making unpredictable
+        if shuffle {
+            fastrand::shuffle(&mut self.0);
+        }
+        if self.0.first().is_some_and(|p| p.class.is_none()) {
+            // if no classes present, no need for diff-list
             return;
         }
-        // shuffle to make match-making unpredictable
-        shuffle(self);
         // here'll be the players ordered as pairs
         let mut as_pairs = Vec::new();
         // 2 players always needed to make up a duel
@@ -41,35 +43,27 @@ impl Players {
             as_pairs.push(self.0.swap_remove(idx)); // then the selected one
         }
         // someone's remained, it's pushed to end
-        if self.0.len() == 1 {
-            as_pairs.push(self.0.pop().unwrap());
-        }
+        as_pairs.append(&mut self.0);
         self.0 = as_pairs; // apply changes
     }
     /// convert `self` into [`Duel`]s
-    pub fn into_duels(self, shuffle: impl FnOnce(&mut Self)) -> Vec<Duel> {
-        // being the only player, create a fake duel with a ghost player
-        if self.0.len() == 1 {
-            let halfset_duel = Duel::new(self.0[0].clone(), Player::default());
-            return vec![halfset_duel];
+    pub fn into_duels(mut self, shuffle: bool) -> Vec<Duel> {
+        if self.0.is_empty() {
+            return vec![];
         }
 
-        // moved self into this mutable version
-        let mut players = self;
+        // shuffle and sort into pairs
+        self.shuffle_as_pairs(shuffle);
 
-        // only works with even number of players
-        assert_eq!(players.0.len() % 2, 0);
-
-        // shuffle, order into pairs
-        players.shuffle_as_pairs(shuffle);
-
-        let mut res = Vec::new();
-        while !players.0.is_empty() {
-            let homie = players.0.swap_remove(0);
-            let guest = players.0.swap_remove(0);
-            res.push(Duel::new(homie, guest));
+        // if needs bye create push it
+        if self.0.len() % 2 == 1 {
+            self.0.push(Player::default());
         }
-        res
+
+        self.0
+            .rchunks_exact_mut(2)
+            .map(|c| Duel::new(std::mem::take(&mut c[0]), std::mem::take(&mut c[1])))
+            .collect()
     }
     /// # Usage
     ///
@@ -122,6 +116,8 @@ impl Players {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    const SHUFFLE: bool = false;
 
     pub fn load_players() -> Players {
         Players::load("data.csv").unwrap()
@@ -220,7 +216,7 @@ pub mod tests {
         );
     }
     #[test]
-    fn basic_shuffle_pairs() {
+    fn no_shuffle_pairs() {
         let mut players = load_players();
         for player in players.0.iter_mut() {
             player.class = None;
@@ -237,18 +233,7 @@ pub mod tests {
             np("Casual Ptarmigan"),
         ]);
         assert_eq!(exp, players);
-        players.shuffle_as_pairs(|_| {});
-        let exp = Players(vec![
-            np("Central Mite"),
-            np("Casual Ptarmigan"),
-            np("Expectant Wolfhound"),
-            np("Profound Ponytail"),
-            np("Inviting Pheasant"),
-            np("Usable Bengal"),
-            np("Droll Jaguar"),
-            np("Exotic Skunk"),
-            np("Relative Wrasse"),
-        ]);
+        players.shuffle_as_pairs(SHUFFLE);
         assert_eq!(exp, players);
     }
     #[test]
@@ -266,7 +251,7 @@ pub mod tests {
             nu_p("Casual Ptarmigan", 11, 'B'),
         ]);
         assert_eq!(exp, players);
-        players.shuffle_as_pairs(|_| {});
+        players.shuffle_as_pairs(SHUFFLE);
         let exp = Players(vec![
             nu_p("Central Mite", 10, 'D'),
             nu_p("Casual Ptarmigan", 11, 'B'),
