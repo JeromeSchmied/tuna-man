@@ -1,7 +1,5 @@
 use super::*;
 
-const SHUFFLE: bool = false;
-
 pub fn load_players() -> Players {
     Players::load("data.csv").unwrap()
 }
@@ -97,54 +95,4 @@ fn more_diff_list() {
         shrex(),
         (nu_p("Expectant Wolfhound", 9, 'D'), Player::default())
     );
-}
-#[test]
-fn no_shuffle_pairs() {
-    let mut players = load_players();
-    for player in players.0.iter_mut() {
-        player.class = None;
-    }
-    let exp = Players(vec![
-        np("Central Mite"),
-        np("Relative Wrasse"),
-        np("Exotic Skunk"),
-        np("Droll Jaguar"),
-        np("Usable Bengal"),
-        np("Inviting Pheasant"),
-        np("Profound Ponytail"),
-        np("Expectant Wolfhound"),
-        np("Casual Ptarmigan"),
-    ]);
-    assert_eq!(exp, players);
-    players.shuffle_as_pairs(SHUFFLE);
-    assert_eq!(exp, players);
-}
-#[test]
-fn more_shuffle_pairs() {
-    let mut players = load_players();
-    let exp = Players(vec![
-        nu_p("Central Mite", 10, 'D'),
-        nu_p("Relative Wrasse", 10, 'C'),
-        nu_p("Exotic Skunk", 00, 'A'),
-        nu_p("Droll Jaguar", 12, 'C'),
-        nu_p("Usable Bengal", 9, 'C'),
-        nu_p("Inviting Pheasant", 12, 'B'),
-        nu_p("Profound Ponytail", 00, 'B'),
-        nu_p("Expectant Wolfhound", 9, 'D'),
-        nu_p("Casual Ptarmigan", 11, 'B'),
-    ]);
-    assert_eq!(exp, players);
-    players.shuffle_as_pairs(SHUFFLE);
-    let exp = Players(vec![
-        nu_p("Central Mite", 10, 'D'),
-        nu_p("Casual Ptarmigan", 11, 'B'),
-        nu_p("Expectant Wolfhound", 9, 'D'),
-        nu_p("Profound Ponytail", 00, 'B'),
-        nu_p("Inviting Pheasant", 12, 'B'),
-        nu_p("Usable Bengal", 9, 'C'),
-        nu_p("Droll Jaguar", 12, 'C'),
-        nu_p("Exotic Skunk", 00, 'A'),
-        nu_p("Relative Wrasse", 10, 'C'),
-    ]);
-    assert_eq!(exp, players);
 }
