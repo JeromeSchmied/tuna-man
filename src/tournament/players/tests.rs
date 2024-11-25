@@ -13,12 +13,6 @@ fn antiload() {
 pub fn nu_p(name: &str, grade: u8, id: char) -> Player {
     Player::new(name, Class::new(grade, id))
 }
-fn np(name: &str) -> Player {
-    Player {
-        name: name.into(),
-        class: None,
-    }
-}
 
 #[test]
 fn load() {
