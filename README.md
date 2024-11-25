@@ -79,7 +79,7 @@ tuna-man <FILE>
 
 ## alternatives
 
-*well*: it's proprietary, quite resource heavy, needs a browser, an account, not all features are free,
+*well*: it's proprietary, quite resource heavy, needs a browser, internet connection, an account, not all features are free,
 **but**: it's far more feature-rich, easy-to-use, no need for installation, actually usable at this very moment
 
 [__*commoninja brackets*__](https://www.commoninja.com/brackets/editor/participants)
