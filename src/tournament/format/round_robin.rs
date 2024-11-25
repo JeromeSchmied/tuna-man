@@ -94,6 +94,10 @@ impl Format for RoundRobin {
     fn results(self) -> Players {
         // hashmap -> vec
         let mut result: Vec<_> = self.points.into_iter().collect();
+        // don't include bye in results
+        if result.last().is_some_and(|p| p.0.is_unset()) {
+            result.pop();
+        }
         // sorted by points
         result.sort_by(|x, y| x.1.cmp(&y.1));
         // extract players
