@@ -23,12 +23,10 @@ impl Players {
         self.0.iter().try_for_each(|p| writer.serialize(p))?;
         writer.flush()
     }
-    /// `shuffle` if true, order, so that every two following players make up a [`Duel`]
-    pub fn shuffle_as_pairs(&mut self, shuffle: bool) {
+    /// `shuffle` and order, so that every two following players make up a [`Duel`]
+    pub fn shuffle_as_pairs(&mut self) {
         // shuffle to make match-making unpredictable
-        if shuffle {
-            fastrand::shuffle(&mut self.0);
-        }
+        fastrand::shuffle(&mut self.0);
         if self.0.first().is_some_and(|p| p.class.is_none()) {
             // if no classes present, no need for diff-list
             return;
@@ -38,12 +36,12 @@ impl Players {
         // 2 players always needed to make up a duel
         while self.0.len() > 1 {
             // current player
-            let cnt = self.0.swap_remove(0);
+            let cnt = self.0.remove(0);
             // the least similar player's index
             let idx = Self::diff_list(&self.0, &cnt)
                 .expect("possibly number of players isn't divisible by two");
             as_pairs.push(cnt); // first the current player
-            as_pairs.push(self.0.swap_remove(idx)); // then the selected one
+            as_pairs.push(self.0.remove(idx)); // then the selected one
         }
         // someone's remained, it's pushed to end
         as_pairs.append(&mut self.0);
@@ -51,12 +49,10 @@ impl Players {
     }
     /// convert `self` into [`Duel`]s
     pub fn into_duels(mut self, shuffle: bool) -> Vec<Duel> {
-        if self.0.is_empty() {
-            return vec![];
+        if shuffle {
+            // shuffle and sort into pairs
+            self.shuffle_as_pairs();
         }
-
-        // shuffle and sort into pairs
-        self.shuffle_as_pairs(shuffle);
 
         // if needs bye create push it
         if self.0.len() % 2 == 1 {

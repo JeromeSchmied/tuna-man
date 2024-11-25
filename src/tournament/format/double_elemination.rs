@@ -95,7 +95,7 @@ impl Format for DoubleElemination {
         self.winner_branch = players;
     }
     fn initial_shuffle(&mut self) {
-        self.winner_branch.shuffle_as_pairs(true);
+        self.winner_branch.shuffle_as_pairs();
     }
 
     fn is_end(&self) -> bool {
