@@ -4,9 +4,6 @@ use std::collections::HashMap;
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament>
 pub struct RoundRobin {
-    // TODO: delete this field, not necessary
-    /// currently relevant [`Duel`]s to be carried out
-    pub duels: Vec<Duel>,
     /// all the participating [`Players`]
     pub players: Players,
     /// points of the `players`
@@ -22,7 +19,7 @@ impl RoundRobin {
     }
     /// update the [`Self::duels`], so in the upcoming round [`Player`]s play against other ones as well
     /// circle-method, implemented according to wikipedia <https://en.wikipedia.org/wiki/Round-robin_tournament#Circle_method>
-    pub fn update_duels(&mut self) {
+    pub fn gen_duels(&mut self) -> Vec<Duel> {
         // the indexed order of duels
         let mut duel_idxs = (1..self.len()).collect::<Vec<_>>();
         duel_idxs.rotate_right(self.round);
@@ -39,17 +36,10 @@ impl RoundRobin {
             );
             duels.push(Duel::new(homie, guest));
         }
-        // apply changes
-        self.duels = duels;
+        duels
     }
-    pub fn new(
-        duels: Vec<Duel>,
-        players: Players,
-        points: HashMap<Player, u8>,
-        round: usize,
-    ) -> Self {
+    pub fn new(players: Players, points: HashMap<Player, u8>, round: usize) -> Self {
         Self {
-            duels,
             players,
             points,
             round,
@@ -78,19 +68,16 @@ impl Format for RoundRobin {
             .collect::<HashMap<_, _>>();
         // apply points
         self.points = points;
-
-        // init duels
-        self.update_duels();
     }
 
     fn is_end(&self) -> bool {
         // every player played against every player
-        self.round == self.len()
+        self.round == self.len() - 1
     }
 
     fn play_round(&mut self, _: bool) {
         // execute duels: get outcomes
-        for duel in &self.duels {
+        for duel in self.gen_duels() {
             println!("\n{duel}");
             // ignore duel if any players are ghosts
             if duel.homie.is_unset() || duel.guest.is_unset() {
@@ -101,8 +88,6 @@ impl Format for RoundRobin {
             // winner get's a point
             self.points.entry(winner).and_modify(|p| *p += 1);
         }
-        // update the duels for the upcoming round
-        self.update_duels();
         // another round is executed
         self.round += 1;
     }
@@ -111,10 +96,6 @@ impl Format for RoundRobin {
         println!("\n\nPOINTS:\n");
         for player in &self.players.0 {
             println!("    {player}: {}", self.points[player]);
-        }
-        println!("\n\n-------------------\n\nDUELS:\n");
-        for duel in &self.duels {
-            println!("    {duel}");
         }
         println!("\n\n\n");
     }
