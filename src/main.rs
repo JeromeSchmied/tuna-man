@@ -1,6 +1,6 @@
 use args::Args;
 use clap::Parser;
-use tournament::{backend, format, Tournament};
+use tournament::{format, Tournament};
 
 /// argument parsing
 mod args;
@@ -9,41 +9,21 @@ mod tournament;
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
-    // let format: Box<dyn format::Format<backend::Cli>> = match args.format {
-    //     format::Supported::SingleElemination => Box::new(format::SingleElemination::default()),
-    //     format::Supported::DoubleElemination => Box::new(format::DoubleElemination::default()),
-    //     format::Supported::RoundRobin => todo!(),
-    //     format::Supported::SwissSystem => todo!(),
-    // };
-    // new tournament, communicate with the user via the cli
-    let backend = backend::Cli;
+    // let format = args.format.to_format();
     match args.format {
         format::Supported::SingleElemination => {
-            Tournament::new(backend, format::SingleElemination::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(format::SingleElemination::default()).execute(args)
         }
         format::Supported::DoubleElemination => {
-            Tournament::new(backend, format::DoubleElemination::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(format::DoubleElemination::default()).execute(args)
         }
         format::Supported::RoundRobin => {
-            Tournament::new(backend, format::RoundRobin::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(format::RoundRobin::default()).execute(args)
         }
         format::Supported::SwissSystem => {
-            Tournament::new(backend, format::SwissSystem::default())
-                .players_from_path(&args.file)?
-                .run(args);
+            Tournament::new(format::SwissSystem::default()).execute(args)
         }
     }
-    // let mut tournament = Tournament::new(backend::Cli, format).players_from_path(args.file)?;
-
-    // players.save();
-
-    Ok(())
 
     // TODO: ratatui ui
     // let mut terminal = ratatui::try_init()?;

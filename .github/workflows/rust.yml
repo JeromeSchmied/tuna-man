@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: ["dev"]
   pull_request:
-    branches: [ "dev" ]
+    branches: ["dev"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,28 +14,26 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        include:
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-
-
+          os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: swatinem/rust-cache@v2
+      - uses: actions/checkout@v4
+      - uses: swatinem/rust-cache@v2
 
-    - name: Build in release mode
-      run: cargo build --release --target ${{ matrix.target }} --verbose
+      - name: Build in release mode
+        run: cargo build --release --verbose
 
-    - name: Run tests
-      run: cargo test --target ${{ matrix.target }} --verbose
+      - name: Run tests
+        run: cargo test --verbose
 
-    - name: Upload executable
-      uses: actions/upload-artifact@v4
-      with:
-        name: tuna-man_${{ matrix.os }}
-        path: target/${{ matrix.target }}/release/tuna-man*
+      - name: Run cargo fmt
+        run: cargo fmt --all --check
+
+      - name: Run cargo clippy
+        run: cargo clippy --all-targets
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: tuna-man_${{ matrix.os }}
+          path: target/release/tuna-man*
