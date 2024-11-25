@@ -48,26 +48,17 @@ impl RoundRobin {
 }
 
 impl Format for RoundRobin {
-    fn add_players(&mut self, players: Players) {
-        // simply apply players
-        self.players = players;
-
+    fn add_players(&mut self, mut players: Players) {
         // odd number of players
-        if self.len() % 2 == 1 {
+        if players.0.len() % 2 == 1 {
             // add ghost player: bye
-            self.players.0.push(Player::default());
+            players.0.push(Player::default());
         }
+        // simply apply players
+        self.players = players.clone();
 
         // set every player's points to 0
-        let points = self
-            .players
-            .0
-            .clone()
-            .into_iter()
-            .map(|p| (p, 0u8))
-            .collect::<HashMap<_, _>>();
-        // apply points
-        self.points = points;
+        self.points = players.0.into_iter().map(|p| (p, 0)).collect();
     }
 
     fn is_end(&self) -> bool {
