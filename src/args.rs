@@ -2,6 +2,7 @@ use crate::tournament::format;
 use std::path::PathBuf;
 
 #[derive(clap::Parser, Clone, Debug, PartialEq, Eq)]
+#[command(version, about, long_about)]
 pub struct Args {
     /// Path to file with participants: '<player/team>,<class>' syntax, where <class> is optional
     pub file: PathBuf,

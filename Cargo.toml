@@ -6,6 +6,7 @@ license = "GPL-3.0-or-later"
 description = "No-bullshit, lightweight, Tournament Manager with a cli."
 # documentation = "https://docs.rs/tuna-man"
 repository = "https://codeberg.org/jark/tuna-man"
+authors = ["Jeromos Kovács <iitsnotme214@proton.me>"]
 
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
