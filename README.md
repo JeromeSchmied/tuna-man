@@ -14,7 +14,7 @@ Whether you're organizing a casual game night or a competitive event, it helps y
 > **_TODO_**
 > - [ ] 🖥️ **TUI interface**: Integration with [ratatui](https://ratatui.rs) for a sleek terminal user interface is in the works.
 > - 🔄 **More Tournament formats**: Upcoming support for multiple tournament formats eg.:
->   - [x] double-elemination
+>   - [x] double-elimination
 >   - [x] single-elimination
 >   - [x] Round-robin
 >   - [ ] Swiss-system

@@ -7,10 +7,10 @@ pub struct Args {
     /// Path to file with participants: '<player/team>,<class>' syntax, where <class> is optional
     pub file: PathBuf,
     /// Format in which the Tournament shall be carried out
-    #[arg(short, long, value_enum, default_value_t = format::Supported::DoubleElemination)]
+    #[arg(short, long, value_enum, default_value_t = format::Supported::DoubleElimination)]
     pub format: format::Supported,
     /// When to smart-shuffle players
-    /// NOTE: ignored if <format> is not elemination type
+    /// NOTE: ignored if <format> is not elimination type
     #[arg(short, long, value_enum, default_value_t = Shuffle::Initially)]
     pub shuffle: Shuffle,
 }

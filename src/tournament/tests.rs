@@ -2,11 +2,11 @@ use super::*;
 use players::tests::nu_p;
 use structs::Player;
 
-mod double_elemination {
+mod double_elimination {
     use super::*;
     use pretty_assertions::assert_eq;
 
-    type DE = format::DoubleElemination;
+    type DE = format::DoubleElimination;
 
     #[test]
     fn tment() {
@@ -170,11 +170,11 @@ mod double_elemination {
     }
 }
 
-mod single_elemination {
+mod single_elimination {
     use super::*;
     use pretty_assertions::assert_eq;
 
-    type SE = format::SingleElemination;
+    type SE = format::SingleElimination;
 
     #[test]
     fn tment_clean() {

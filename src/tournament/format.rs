@@ -3,28 +3,28 @@ use super::{
     structs::{Duel, Player},
 };
 
-pub use double_elemination::DoubleElemination;
+pub use double_elimination::DoubleElimination;
 pub use round_robin::RoundRobin;
-pub use single_elemination::SingleElemination;
+pub use single_elimination::SingleElimination;
 pub use swiss_system::SwissSystem;
 
-pub mod double_elemination;
+pub mod double_elimination;
 pub mod round_robin;
-pub mod single_elemination;
+pub mod single_elimination;
 pub mod swiss_system;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
 pub enum Supported {
-    SingleElemination,
-    DoubleElemination,
+    SingleElimination,
+    DoubleElimination,
     RoundRobin,
     SwissSystem,
 }
 // impl Supported {
 //     pub fn to_format(self) -> Box<dyn Format> {
 //         match self {
-//             Self::SingleElemination => Box::new(SingleElemination::default()),
-//             Self::DoubleElemination => Box::new(DoubleElemination::default()),
+//             Self::SingleElimination => Box::new(SingleElimination::default()),
+//             Self::DoubleElimination => Box::new(DoubleElimination::default()),
 //             Self::RoundRobin => Box::new(RoundRobin::default()),
 //             Self::SwissSystem => Box::new(SwissSystem::default()),
 //         }
