@@ -5,12 +5,12 @@ use super::{
 
 pub use double_elimination::DoubleElimination;
 pub use round_robin::RoundRobin;
-pub use single_elmination::SingleElimination;
+pub use single_elimination::SingleElimination;
 pub use swiss_system::SwissSystem;
 
 pub mod double_elimination;
 pub mod round_robin;
-pub mod single_elmination;
+pub mod single_elimination;
 pub mod swiss_system;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
