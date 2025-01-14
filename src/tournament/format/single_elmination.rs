@@ -2,18 +2,18 @@ use super::*;
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Single-elimination_tournament>
-pub struct SingleElemination {
+pub struct SingleElimination {
     pub branch: Players,
     pub knocked: Players,
 }
 
-impl SingleElemination {
+impl SingleElimination {
     pub fn new(branch: Players, knocked: Players) -> Self {
         Self { branch, knocked }
     }
 }
 
-impl Format for SingleElemination {
+impl Format for SingleElimination {
     fn add_players(&mut self, players: Players) {
         self.branch = players;
     }

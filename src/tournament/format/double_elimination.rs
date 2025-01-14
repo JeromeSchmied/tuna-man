@@ -2,13 +2,13 @@ use super::*;
 
 #[derive(Default, PartialEq, Eq, Clone, Debug)]
 /// implemented according to wikipedia <https://en.wikipedia.org/wiki/Double-elimination_tournament>
-pub struct DoubleElemination {
+pub struct DoubleElimination {
     winner_branch: Players,
     loser_branch: Players,
     knocked: Players,
 }
 
-impl DoubleElemination {
+impl DoubleElimination {
     pub fn new(winner_branch: Players, loser_branch: Players, knocked: Players) -> Self {
         Self {
             winner_branch,
@@ -90,7 +90,7 @@ impl DoubleElemination {
     }
 }
 
-impl Format for DoubleElemination {
+impl Format for DoubleElimination {
     fn add_players(&mut self, players: Players) {
         self.winner_branch = players;
     }
@@ -133,7 +133,7 @@ impl Format for DoubleElemination {
             println!("\nspecial loser duel: ");
             let loser = Duel::handle_special(&mut next_loser_b);
             println!("bye-bye {loser}");
-            self.knocked.0.push(loser); // loser get's eleminated: knocked out
+            self.knocked.0.push(loser); // loser get's eliminated: knocked out
         }
         // and we apply the changes by turning new branches into duels
         self.winner_branch = next_winner_b;

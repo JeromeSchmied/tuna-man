@@ -11,11 +11,11 @@ fn main() -> std::io::Result<()> {
     let args = Args::parse();
     // let format = args.format.to_format();
     match args.format {
-        format::Supported::SingleElemination => {
-            Tournament::new(format::SingleElemination::default()).execute(args)
+        format::Supported::SingleElimination => {
+            Tournament::new(format::SingleElimination::default()).execute(args)
         }
-        format::Supported::DoubleElemination => {
-            Tournament::new(format::DoubleElemination::default()).execute(args)
+        format::Supported::DoubleElimination => {
+            Tournament::new(format::DoubleElimination::default()).execute(args)
         }
         format::Supported::RoundRobin => {
             Tournament::new(format::RoundRobin::default()).execute(args)
